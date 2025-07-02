@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple Chat</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; background: #f5f5f5; }
+    #messages { border: 1px solid #ddd; height: 300px; overflow-y: auto; padding: 0.5rem; }
+    .msg { margin: 0.5rem 0; }
+    .colorCircle { display: inline-block; width: 16px; height: 16px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+    #chatSection { display: none; }
+    form { display: flex; gap: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div id="roomSection">
+    <form id="roomForm">
+      <input id="roomInput" placeholder="Enter room code" required />
+      <button>Join</button>
+    </form>
+  </div>
+
+  <div id="chatSection">
+    <div id="messages"></div>
+    <form id="chatForm">
+      <input id="messageInput" placeholder="Type a message..." required />
+      <button>Send</button>
+    </form>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let roomCode = "";
+    let colorName = "";
+    const colorNames = ["Aliceblue", "Aquamarine", "Coral", "Gold", "Khaki", "Lavender", "Plum", "Salmon", "Turquoise"];
+
+    const roomForm = document.getElementById("roomForm");
+    const roomInput = document.getElementById("roomInput");
+    const roomSection = document.getElementById("roomSection");
+    const chatSection = document.getElementById("chatSection");
+    const messagesDiv = document.getElementById("messages");
+    const chatForm = document.getElementById("chatForm");
+    const messageInput = document.getElementById("messageInput");
+
+    roomForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      roomCode = roomInput.value.trim();
+      colorName = colorNames[Math.floor(Math.random() * colorNames.length)];
+      socket.emit("joinRoom", { roomCode, colorName });
+      roomSection.style.display = "none";
+      chatSection.style.display = "block";
+    });
+
+    chatForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      socket.emit("sendMessage", { roomCode, colorName, text: messageInput.value });
+      messageInput.value = "";
+    });
+
+    socket.on("loadMessages", (messages) => {
+      messagesDiv.innerHTML = "";
+      messages.forEach(addMessage);
+    });
+
+    socket.on("newMessage", (msg) => {
+      addMessage(msg);
+    });
+
+    socket.on("deleteMessage", (id) => {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    });
+
+    function addMessage(msg) {
+      const div = document.createElement("div");
+      div.className = "msg";
+      div.id = msg._id;
+      div.innerHTML = `
+        <span class="colorCircle" style="background:${msg.colorName}"></span>
+        <strong>${msg.colorName}</strong>: ${msg.text}
+        <button onclick="save('${msg._id}')">Save</button>
+        <button onclick="del('${msg._id}')">Delete</button>
+      `;
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function save(id) {
+      socket.emit("saveMessage", id);
+    }
+    function del(id) {
+      socket.emit("deleteMessage", id);
+    }
+  </script>
+</body>
+</html>
