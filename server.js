@@ -1,81 +1,131 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const { MongoClient, ObjectId } = require("mongodb");
-const cron = require("node-cron");
-const path = require("path");
+// server.js
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const { MongoClient, ObjectId } = require('mongodb');
+const cron = require('node-cron');
+
+require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" }
+const io = new Server(server);
+
+const PORT = process.env.PORT || 10000;
+const MONGO_URL = process.env.MONGO_URL;
+
+let db, messagesCol;
+
+// Serve static files from public folder
+app.use(express.static('public'));
+
+async function connectDB() {
+  const client = new MongoClient(MONGO_URL);
+  await client.connect();
+  db = client.db('chatdb'); // db name can be anything
+  messagesCol = db.collection('messages');
+
+  console.log('Connected to MongoDB');
+}
+
+// Delete unsaved messages older than 24 hours every hour
+cron.schedule('0 * * * *', async () => {
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const res = await messagesCol.deleteMany({
+    saved: false,
+    createdAt: { $lt: cutoff }
+  });
+  if (res.deletedCount) {
+    console.log(`Deleted ${res.deletedCount} unsaved old messages`);
+  }
 });
 
-const mongoUrl = process.env.MONGO_URL;
-const client = new MongoClient(mongoUrl);
-let messagesCollection;
+io.on('connection', (socket) => {
+  console.log(`User connected: ${socket.id}`);
 
-async function connectDb() {
-  await client.connect();
-  const db = client.db("chatdb");
-  messagesCollection = db.collection("messages");
-  console.log("MongoDB connected");
-}
-connectDb();
-
-app.use(express.static(path.join(__dirname, "public")));
-
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
-  socket.on("joinRoom", async ({ roomCode, colorName }) => {
+  socket.on('joinRoom', async ({ roomCode, colorName }) => {
     socket.join(roomCode);
+    socket.roomCode = roomCode;
+    socket.colorName = colorName;
 
-    const messages = await messagesCollection
-      .find({ room: roomCode })
-      .sort({ createdAt: 1 })
-      .toArray();
-    socket.emit("loadMessages", messages);
+    console.log(`Socket ${socket.id} joined room ${roomCode} with color ${colorName}`);
+
+    // Load last 100 messages from this room, sorted by time
+    const msgs = await messagesCol.find({ room: roomCode }).sort({ createdAt: 1 }).limit(100).toArray();
+
+    // Send existing messages to client
+    socket.emit('loadMessages', msgs);
   });
 
-  socket.on("sendMessage", async ({ roomCode, colorName, text }) => {
+  socket.on('message', async ({ text }) => {
+    if (!text || !socket.roomCode || !socket.colorName) return;
+
     const msg = {
-      room: roomCode,
-      colorName,
+      room: socket.roomCode,
+      colorName: socket.colorName,
       text,
       saved: false,
       createdAt: new Date(),
       senderId: socket.id
     };
-    const res = await messagesCollection.insertOne(msg);
-    msg._id = res.insertedId;
-    io.to(roomCode).emit("newMessage", msg);
+
+    // Insert message into DB
+    const result = await messagesCol.insertOne(msg);
+    msg._id = result.insertedId;
+
+    // Broadcast to all in room
+    io.to(socket.roomCode).emit('message', msg);
   });
 
-  socket.on("saveMessage", async (id) => {
-    await messagesCollection.updateOne(
-      { _id: new ObjectId(id), senderId: socket.id },
-      { $set: { saved: true } }
-    );
-  });
+  socket.on('saveMessage', async (id) => {
+    try {
+      const _id = new ObjectId(id);
+      const msg = await messagesCol.findOne({ _id });
 
-  socket.on("deleteMessage", async (id) => {
-    const msg = await messagesCollection.findOne({ _id: new ObjectId(id) });
-    if (msg && msg.senderId === socket.id) {
-      await messagesCollection.deleteOne({ _id: new ObjectId(id) });
-      io.to(msg.room).emit("deleteMessage", id);
+      if (!msg) return;
+
+      // Only sender can save their message
+      if (msg.senderId !== socket.id) return;
+
+      await messagesCol.updateOne({ _id }, { $set: { saved: true } });
+
+      socket.emit('messageSaved', id);
+    } catch (e) {
+      console.error('Error saving message:', e);
     }
   });
-});
 
-cron.schedule("0 * * * *", async () => {
-  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const result = await messagesCollection.deleteMany({
-    saved: false,
-    createdAt: { $lt: cutoff }
+  socket.on('deleteMessage', async (id) => {
+    try {
+      const _id = new ObjectId(id);
+      const msg = await messagesCol.findOne({ _id });
+
+      if (!msg) return;
+
+      // Only sender can delete their message
+      if (msg.senderId !== socket.id) return;
+
+      await messagesCol.deleteOne({ _id });
+
+      // Notify everyone in room to remove the message
+      io.to(socket.roomCode).emit('messageDeleted', id);
+    } catch (e) {
+      console.error('Error deleting message:', e);
+    }
   });
-  console.log(`Deleted ${result.deletedCount} expired messages.`);
+
+  socket.on('disconnect', () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+// Start server after DB connects
+connectDB()
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(`Server listening on ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+  });
