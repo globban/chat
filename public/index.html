@@ -1,86 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
   <title>Simple Chat</title>
   <style>
-    body { font-family: sans-serif; padding: 1rem; background: #f5f5f5; }
-    #messages { border: 1px solid #ddd; height: 300px; overflow-y: auto; padding: 0.5rem; }
-    .msg { margin: 0.5rem 0; }
-    .colorCircle { display: inline-block; width: 16px; height: 16px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
-    #chatSection { display: none; }
-    form { display: flex; gap: 0.5rem; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #roomSelector {
+      padding: 20px;
+      text-align: center;
+      background: #333;
+      color: white;
+    }
+    #chat {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .msg {
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .colorCircle {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    .username {
+      font-weight: bold;
+      margin-right: 4px;
+    }
+    #inputContainer {
+      display: flex;
+      padding: 10px;
+      background: #eee;
+      gap: 8px;
+    }
+    #input {
+      flex: 1;
+      padding: 8px;
+      font-size: 1em;
+    }
   </style>
 </head>
 <body>
-  <div id="roomSection">
-    <form id="roomForm">
-      <input id="roomInput" placeholder="Enter room code" required />
-      <button>Join</button>
-    </form>
+  <div id="roomSelector">
+    <input id="roomCode" placeholder="Enter room code" />
+    <input type="color" id="colorPicker" value="#3498db" title="Pick your color" />
+    <button id="joinBtn">Join Room</button>
   </div>
-
-  <div id="chatSection">
+  <div id="chat">
     <div id="messages"></div>
-    <form id="chatForm">
-      <input id="messageInput" placeholder="Type a message..." required />
-      <button>Send</button>
-    </form>
+    <div id="inputContainer">
+      <input id="input" placeholder="Type a message..." />
+      <button id="sendBtn">Send</button>
+    </div>
   </div>
-
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-    let roomCode = "";
-    let colorName = "";
-    const colorNames = ["Aliceblue", "Aquamarine", "Coral", "Gold", "Khaki", "Lavender", "Plum", "Salmon", "Turquoise"];
+    const roomCodeInput = document.getElementById('roomCode');
+    const colorPicker = document.getElementById('colorPicker');
+    const joinBtn = document.getElementById('joinBtn');
+    const chatDiv = document.getElementById('chat');
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('sendBtn');
+    let roomCode = '';
+    let colorName = '';
 
-    const roomForm = document.getElementById("roomForm");
-    const roomInput = document.getElementById("roomInput");
-    const roomSection = document.getElementById("roomSection");
-    const chatSection = document.getElementById("chatSection");
-    const messagesDiv = document.getElementById("messages");
-    const chatForm = document.getElementById("chatForm");
-    const messageInput = document.getElementById("messageInput");
+    function stringToHSL(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const h = Math.abs(hash) % 360;
+      return `hsl(${h},70%,60%)`;
+    }
 
-    roomForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      roomCode = roomInput.value.trim();
-      colorName = colorNames[Math.floor(Math.random() * colorNames.length)];
+    joinBtn.onclick = () => {
+      roomCode = roomCodeInput.value.trim();
+      if (!roomCode) return alert("Enter a room code.");
+      // Use user-picked color
+      colorName = colorPicker.value;
       socket.emit("joinRoom", { roomCode, colorName });
-      roomSection.style.display = "none";
-      chatSection.style.display = "block";
-    });
+      document.getElementById("roomSelector").style.display = "none";
+      chatDiv.style.display = "flex";
+    };
 
-    chatForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      socket.emit("sendMessage", { roomCode, colorName, text: messageInput.value });
-      messageInput.value = "";
-    });
+    sendBtn.onclick = () => {
+      const text = input.value.trim();
+      if (!text) return;
+      socket.emit("message", { text });
+      input.value = "";
+    };
 
-    socket.on("loadMessages", (messages) => {
-      messagesDiv.innerHTML = "";
-      messages.forEach(addMessage);
-    });
-
-    socket.on("newMessage", (msg) => {
+    socket.on("message", msg => {
       addMessage(msg);
     });
 
-    socket.on("deleteMessage", (id) => {
-      const el = document.getElementById(id);
-      if (el) el.remove();
+    socket.on("loadMessages", msgs => {
+      messagesDiv.innerHTML = "";
+      msgs.forEach(m => addMessage(m));
     });
+
+    function formatTime(iso) {
+      const d = new Date(iso);
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
 
     function addMessage(msg) {
       const div = document.createElement("div");
       div.className = "msg";
       div.id = msg._id;
+      div.style.background = `${msg.colorName}10`;
       div.innerHTML = `
         <span class="colorCircle" style="background:${msg.colorName}"></span>
-        <strong>${msg.colorName}</strong>: ${msg.text}
-        <button onclick="save('${msg._id}')">Save</button>
-        <button onclick="del('${msg._id}')">Delete</button>
+        <span class="username" style="color:${msg.colorName}">${msg.colorName}</span>
+        <span style="font-size:0.85em;color:#555;">(${formatTime(msg.createdAt)})</span>
+        <div style="margin-top:2px;">${msg.text}</div>
+        <div style="margin-top:4px;">
+          <button onclick="save('${msg._id}')">Save</button>
+          <button onclick="del('${msg._id}')">Delete</button>
+        </div>
       `;
       messagesDiv.appendChild(div);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -88,9 +149,14 @@
 
     function save(id) {
       socket.emit("saveMessage", id);
+      alert("Message saved.");
     }
     function del(id) {
-      socket.emit("deleteMessage", id);
+      if (confirm("Delete this message?")) {
+        socket.emit("deleteMessage", id);
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      }
     }
   </script>
 </body>
