@@ -5,8 +5,6 @@ const { Server } = require('socket.io');
 const { MongoClient, ObjectId } = require('mongodb');
 const cron = require('node-cron');
 
-require('dotenv').config();
-
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
