@@ -3,21 +3,49 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Simple Chat</title>
+<title>DB chat</title>
 <style>
   body {
     font-family: Arial, sans-serif;
     margin: 0; padding: 0;
-    background: #f4f4f4;
+    background: #333333;
     display: flex;
     flex-direction: column;
     height: 100vh;
   }
+
+  /* Hide the color picker input */
+  #colorPicker {
+    display: none;
+  }
+
+  input[type="color"] {
+  border-radius: 5px;
+  padding: 0;
+  border: none;
+}
+
+input[type="color"]::-moz-color-swatch {
+  border: none;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+}
+
   #roomSelector {
     padding: 16px;
     text-align: center;
-    background: #333;
+    background: #00000000;  
     color: white;
+    top: 50%;
+    transform: translateY(-50%);
+    position: relative;
   }
   #roomSelector input[type="text"], #roomSelector input[type="color"] {
     font-size: 1em;
@@ -118,6 +146,7 @@
     border-radius: 6px;
     border: 1px solid #ccc;
     resize: none;
+    bottom: 0px;
   }
   #input:focus {
     outline: none;
@@ -167,8 +196,9 @@
 
 <div id="roomSelector">
   <input id="roomCode" type="text" placeholder="Enter room code" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+  <!-- Hide color picker, only show HEX input -->
   <input id="colorPicker" type="color" value="#000000" title="Pick your color" />
-  <input id="colorHex" type="text" maxlength="7" size="7" value="#000000" style="font-family: monospace; padding:6px; border-radius:4px; border:none; width:70px; vertical-align:middle;" title="Edit HEX color code (#RRGGBB)" />
+  <input id="colorHex" type="text" maxlength="7" size="7" value="#000000" style="font-family: monospace; padding:6px; border-radius:4px; border:none; width:70px; vertical-align:middle; cursor:pointer;" title="Edit HEX color code (#RRGGBB)" />
   <button id="joinBtn">Join Room</button>
 </div>
 
@@ -206,6 +236,14 @@
     // Save default
     localStorage.setItem('chatUserColor', userColor);
   }
+
+  // Show color picker UI when HEX box is focused or clicked
+  colorHex.addEventListener('focus', () => {
+    colorPicker.click();
+  });
+  colorHex.addEventListener('click', () => {
+    colorPicker.click();
+  });
 
   // Sync color picker <-> HEX input
   colorPicker.addEventListener('input', () => {
