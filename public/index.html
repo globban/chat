@@ -9,7 +9,7 @@
     font-family: system-ui, sans-serif;
     margin: 0;
     min-height: 100vh;
-    background: url('https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1500&q=80') center center/cover no-repeat fixed;
+    background: url('https://images.unsplash.com/photo-1751378639125-07bae36d4556?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center center/cover no-repeat fixed;
     color: #eee;
     display: flex;
     flex-direction: column;
@@ -21,10 +21,10 @@
     content: "";
     position: fixed;
     inset: 0;
-    background: rgba(18, 24, 34, 0.72);
+    background: rgba(18, 24, 34, 0.32); /* less dark overlay */
     z-index: 0;
     pointer-events: none;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(8px) saturate(120%);
   }
   /* --- Join Section --- */
   #joinSection, #chatSection {
@@ -43,15 +43,57 @@
     display: flex;
     flex-direction: column;
     gap: 1.1em;
-    background: rgba(35,35,35,0.7);
+    background: rgba(35,35,35,0.38);
     padding: 2em 2em 1.5em 2em;
     border-radius: 18px;
     box-shadow: 0 2px 32px #000a;
     min-width: 260px;
     max-width: 90vw;
     align-items: stretch;
-    backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(160%);
     border: 1.5px solid rgba(255,255,255,0.08);
+  }
+  #nameInput, #roomInput {
+    width: 100%;
+    max-width: 260px;
+    padding: 0.7em 1em;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.13);
+    color: #eee;
+    margin-bottom: 0.2em;
+    outline: none;
+    box-sizing: border-box;
+    transition: box-shadow 0.2s, background 0.2s;
+    border: 1.5px solid rgba(255,255,255,0.13);
+    backdrop-filter: blur(8px) saturate(120%);
+    box-shadow: 0 1px 8px #0002;
+  }
+  #nameInput:focus, #roomInput:focus {
+    box-shadow: 0 0 0 2px #06c, 0 1px 8px #0002;
+    background: rgba(255,255,255,0.18);
+    border-color: #06c;
+  }
+  #colorInput {
+    width: 38px;
+    height: 32px;
+    border: none;
+    background: rgba(255,255,255,0.13);
+    cursor: pointer;
+    padding: 0;
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #444;
+    transition: box-shadow 0.2s, background 0.2s;
+    margin: 0;
+    vertical-align: middle;
+    display: inline-block;
+    backdrop-filter: blur(8px) saturate(120%);
+  }
+  #colorInput:focus {
+    box-shadow: 0 0 0 2px #06c;
+    outline: none;
+    background: rgba(255,255,255,0.18);
   }
   /* --- Chat Section Layout --- */
   #chatSection {
@@ -303,6 +345,20 @@
     color: #fff;
     background: #333;
   }
+  #sidebarUsers button.danger {
+    background: #c00 !important;
+    color: #fff !important;
+    border-color: #c00 !important;
+    font-weight: 700;
+    animation: shake 0.2s;
+  }
+  @keyframes shake {
+    0% { transform: translateX(0);}
+    25% { transform: translateX(-2px);}
+    50% { transform: translateX(2px);}
+    75% { transform: translateX(-2px);}
+    100% { transform: translateX(0);}
+  }
   @keyframes msgIn {
     from { opacity: 0; transform: translateY(10px);}
     to { opacity: 1; transform: none;}
@@ -330,16 +386,18 @@
     font-size: 1em;
     border: none;
     border-radius: 8px;
-    background: rgba(24,24,24,0.7);
+    background: rgba(255,255,255,0.13);
     color: #eee;
-    outline: none;
-    box-sizing: border-box;
-    transition: box-shadow 0.2s;
-    border: 1.5px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(2px);
+    border-radius: 8px;
+    border: 1.5px solid rgba(255,255,255,0.13);
+    backdrop-filter: blur(8px) saturate(120%);
+    box-shadow: 0 1px 8px #0002;
+    transition: box-shadow 0.2s, background 0.2s;
   }
   #messageInput:focus {
-    box-shadow: 0 0 0 2px #06c;
+    box-shadow: 0 0 0 2px #06c, 0 1px 8px #0002;
+    background: rgba(255,255,255,0.18);
+    border-color: #06c;
   }
   #sendBtn {
     padding: 0.8em 1.5em;
@@ -428,7 +486,6 @@
     <div id="sidebarHeader">Room</div>
     <div id="sidebarUsers">
       <button id="copyRoomLinkBtn" style="width:100%;margin-bottom:0.7em;">Copy Room Link</button>
-      <button id="clearMessagesBtn" style="width:100%;margin-bottom:0.7em;">Clear Messages</button>
       <button id="leaveRoomBtn" style="width:100%;">Leave Room</button>
     </div>
   </div>
@@ -461,7 +518,6 @@ const sendBtn = document.getElementById("sendBtn");
 const roomCodeDisplay = document.getElementById("roomCodeDisplay");
 const copyRoomLinkBtn = document.getElementById("copyRoomLinkBtn");
 const leaveRoomBtn = document.getElementById("leaveRoomBtn");
-const clearMessagesBtn = document.getElementById("clearMessagesBtn");
 
 let currentRoomCode = "";
 
@@ -577,8 +633,25 @@ leaveRoomBtn.onclick = () => {
   currentRoomCode = "";
 };
 
-clearMessagesBtn.onclick = () => {
-  if (confirm("Clear all messages in this room?")) {
+// --- Auto-join room from URL ---
+(function autoJoinFromUrl() {
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  if (path && path !== "" && path !== "index.html") {
+    // Pre-fill room input and auto-join
+    document.getElementById("roomInput").value = path;
+    setTimeout(() => {
+      joinBtn.click();
+    }, 100); // slight delay to ensure DOM is ready
+  }
+})();
+</script>
+</body>
+</html>
+  } else {
+    clearMessagesBtn.classList.remove("danger");
+    clearMessagesBtn.textContent = "Clear Messages";
+    clearBtnArmed = false;
+    if (clearBtnTimeout) clearTimeout(clearBtnTimeout);
     socket.emit("clearMessages");
   }
 };
@@ -586,6 +659,18 @@ clearMessagesBtn.onclick = () => {
 socket.on("messagesCleared", () => {
   messagesDiv.innerHTML = "";
 });
+
+// --- Auto-join room from URL ---
+(function autoJoinFromUrl() {
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  if (path && path !== "" && path !== "index.html") {
+    // Pre-fill room input and auto-join
+    document.getElementById("roomInput").value = path;
+    setTimeout(() => {
+      joinBtn.click();
+    }, 100); // slight delay to ensure DOM is ready
+  }
+})();
 </script>
 </body>
 </html>

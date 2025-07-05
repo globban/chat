@@ -92,14 +92,6 @@ io.on("connection", (socket) => {
     await messagesCol.deleteOne({ _id: new ObjectId(id) });
     io.to(socket.roomCode).emit("messageDeleted", id);
   });
-
-  socket.on("clearMessages", async () => {
-    const roomCode = socket.data.roomCode;
-    if (roomCode) {
-      await messagesCol.deleteMany({ room: roomCode });
-      io.to(roomCode).emit("messagesCleared");
-    }
-  });
 });
 
 // Clean up inactive rooms every hour
