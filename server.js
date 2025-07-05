@@ -61,7 +61,11 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("message", async ({ text, roomCode, userName, color }) => {
+  socket.on("message", async ({ text }) => {
+    // Use socket.data.roomCode, socket.data.userName, socket.data.color
+    const roomCode = socket.data.roomCode;
+    const userName = socket.data.userName;
+    const color = socket.data.color;
     if (!roomCode || !text) return;
 
     const trimmed = text.trim();
