@@ -26,6 +26,8 @@ app.use(express.static("public"));
 
 // Store last activity timestamp per room
 const activeRooms = new Map();
+// Assuming you have something like this for rooms/messages:
+const rooms = {}; // { roomCode: { messages: [], ... } }
 
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
@@ -33,7 +35,7 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", async ({ roomCode, userName, color }) => {
     if (!roomCode) return;
     socket.join(roomCode);
-    socket.roomCode = roomCode;
+    socket.data.roomCode = roomCode;
     socket.userName = userName || "Anonymous";
     socket.color = color || "#000000";
 
@@ -46,6 +48,14 @@ io.on("connection", (socket) => {
       .toArray();
 
     socket.emit("loadMessages", msgs);
+  });
+
+  socket.on("leaveRoom", () => {
+    const roomCode = socket.data.roomCode;
+    if (roomCode) {
+      socket.leave(roomCode);
+      delete socket.data.roomCode;
+    }
   });
 
   socket.on("message", async ({ text }) => {
@@ -78,6 +88,14 @@ io.on("connection", (socket) => {
 
     await messagesCol.deleteOne({ _id: new ObjectId(id) });
     io.to(socket.roomCode).emit("messageDeleted", id);
+  });
+
+  socket.on("clearMessages", () => {
+    const roomCode = socket.data.roomCode;
+    if (roomCode && rooms[roomCode]) {
+      rooms[roomCode].messages = [];
+      io.to(roomCode).emit("messagesCleared");
+    }
   });
 });
 

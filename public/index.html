@@ -374,6 +374,9 @@
   <div id="sidebar">
     <div id="sidebarHeader">Room</div>
     <div id="sidebarUsers">
+      <button id="copyRoomLinkBtn" style="width:100%;margin-bottom:0.7em;">Copy Room Link</button>
+      <button id="clearMessagesBtn" style="width:100%;margin-bottom:0.7em;">Clear Messages</button>
+      <button id="leaveRoomBtn" style="width:100%;">Leave Room</button>
     </div>
   </div>
   <div id="chatMain">
@@ -403,6 +406,9 @@ const messagesDiv = document.getElementById("messages");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const roomCodeDisplay = document.getElementById("roomCodeDisplay");
+const copyRoomLinkBtn = document.getElementById("copyRoomLinkBtn");
+const leaveRoomBtn = document.getElementById("leaveRoomBtn");
+const clearMessagesBtn = document.getElementById("clearMessagesBtn");
 
 let currentRoomCode = "";
 
@@ -499,8 +505,34 @@ function escapeHtml(text) {
 function deleteMsg(id){
   socket.emit("deleteMessage", id);
 }
+
+copyRoomLinkBtn.onclick = () => {
+  if (!currentRoomCode) return;
+  const url = `${location.origin}/${encodeURIComponent(currentRoomCode)}`;
+  navigator.clipboard.writeText(url).then(() => {
+    copyRoomLinkBtn.textContent = "Copied!";
+    setTimeout(() => copyRoomLinkBtn.textContent = "Copy Room Link", 1200);
+  });
+};
+
+leaveRoomBtn.onclick = () => {
+  socket.emit("leaveRoom");
+  chatSection.style.display = "none";
+  joinSection.style.display = "flex";
+  messagesDiv.innerHTML = "";
+  roomCodeDisplay.style.display = "none";
+  currentRoomCode = "";
+};
+
+clearMessagesBtn.onclick = () => {
+  if (confirm("Clear all messages in this room?")) {
+    socket.emit("clearMessages");
+  }
+};
+
+socket.on("messagesCleared", () => {
+  messagesDiv.innerHTML = "";
+});
 </script>
-</body>
-</html>
 </body>
 </html>
