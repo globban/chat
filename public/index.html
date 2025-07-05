@@ -538,41 +538,21 @@ joinBtn.onclick = () => {
   localStorage.color = colorHex;
   localStorage.name = userName;
 
-  // Store roomCode on socket for later use in sendMessage
-  socket.roomCode = roomCode;
-
   socket.emit("joinRoom", { roomCode, userName, color: colorHex });
-  joinSection.style.display = "none";
-  chatSection.style.display = "flex";
-  // Show room code
   currentRoomCode = roomCode;
-  roomCodeDisplay.textContent = "Room: " + roomCode;
-  roomCodeDisplay.style.display = "inline-block";
+  // Show chat UI only after server confirms join
+  // joinSection.style.display = "none";
+  // chatSection.style.display = "flex";
+  // roomCodeDisplay.textContent = "Room: " + roomCode;
+  // roomCodeDisplay.style.display = "inline-block";
 };
 
-sendBtn.onclick = sendMessage;
-messageInput.addEventListener("keydown", e => {
-  if(e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-});
-
-function sendMessage() {
-  const text = messageInput.value;
-  if (text.trim()) {
-    socket.emit("message", {
-      text,
-      roomCode: currentRoomCode,
-      userName: nameInput.value.trim() || "Anonymous",
-      color: colorInput.value.trim().toLowerCase()
-    });
-    messageInput.value = "";
-  }
-}
-
-
+// Wait for server to send loadMessages before showing chat UI
 socket.on("loadMessages", msgs => {
+  joinSection.style.display = "none";
+  chatSection.style.display = "flex";
+  roomCodeDisplay.textContent = "Room: " + currentRoomCode;
+  roomCodeDisplay.style.display = "inline-block";
   messagesDiv.innerHTML = "";
   msgs.forEach(renderMessage);
 });
@@ -655,3 +635,4 @@ leaveRoomBtn.onclick = () => {
 })();
 </script>
 </body>
+</html>
