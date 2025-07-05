@@ -24,10 +24,13 @@ const io = new Server(server);
 // Serve static files
 app.use(express.static("public"));
 
+// Serve index.html for any /:roomCode route (for direct room links)
+app.get("/:roomCode", (req, res) => {
+  res.sendFile(__dirname + "/public/index.html");
+});
+
 // Store last activity timestamp per room
 const activeRooms = new Map();
-// Assuming you have something like this for rooms/messages:
-const rooms = {}; // { roomCode: { messages: [], ... } }
 
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
@@ -90,10 +93,10 @@ io.on("connection", (socket) => {
     io.to(socket.roomCode).emit("messageDeleted", id);
   });
 
-  socket.on("clearMessages", () => {
+  socket.on("clearMessages", async () => {
     const roomCode = socket.data.roomCode;
-    if (roomCode && rooms[roomCode]) {
-      rooms[roomCode].messages = [];
+    if (roomCode) {
+      await messagesCol.deleteMany({ room: roomCode });
       io.to(roomCode).emit("messagesCleared");
     }
   });
