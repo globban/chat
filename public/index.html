@@ -561,11 +561,16 @@ messageInput.addEventListener("keydown", e => {
 function sendMessage() {
   const text = messageInput.value;
   if (text.trim()) {
-    // Always send roomCode with message if needed
-    socket.emit("message", { text, roomCode: currentRoomCode });
+    socket.emit("message", {
+      text,
+      roomCode: currentRoomCode,
+      userName: nameInput.value.trim() || "Anonymous",
+      color: colorInput.value.trim().toLowerCase()
+    });
     messageInput.value = "";
   }
 }
+
 
 socket.on("loadMessages", msgs => {
   messagesDiv.innerHTML = "";

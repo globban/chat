@@ -39,8 +39,8 @@ io.on("connection", (socket) => {
     if (!roomCode) return;
     socket.join(roomCode);
     socket.data.roomCode = roomCode;
-    socket.userName = userName || "Anonymous";
-    socket.color = color || "#000000";
+    socket.data.userName = userName || "Anonymous";
+    socket.data.color = color || "#000000";
 
     activeRooms.set(roomCode, new Date());
 
@@ -61,18 +61,18 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("message", async ({ text }) => {
-    if (!socket.roomCode || !text) return;
+  socket.on("message", async ({ text, roomCode, userName, color }) => {
+    if (!roomCode || !text) return;
 
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    activeRooms.set(socket.roomCode, new Date());
+    activeRooms.set(roomCode, new Date());
 
     const msg = {
-      room: socket.roomCode,
-      userName: socket.userName,
-      color: socket.color,
+      room: roomCode,
+      userName: userName || "Anonymous",
+      color: color || "#000000",
       text: trimmed.substring(0, 500),
       createdAt: new Date(),
       senderId: socket.id,
@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
     const res = await messagesCol.insertOne(msg);
     msg._id = res.insertedId;
 
-    io.to(socket.roomCode).emit("message", msg);
+    io.to(roomCode).emit("message", msg);
   });
 
   socket.on("deleteMessage", async (id) => {
@@ -90,7 +90,7 @@ io.on("connection", (socket) => {
     if (!msg || msg.senderId !== socket.id) return;
 
     await messagesCol.deleteOne({ _id: new ObjectId(id) });
-    io.to(socket.roomCode).emit("messageDeleted", id);
+    io.to(msg.room).emit("messageDeleted", id);
   });
 });
 
