@@ -622,6 +622,22 @@ leaveRoomBtn.onclick = () => {
   currentRoomCode = "";
 };
 
+sendBtn.onclick = sendMessage;
+messageInput.addEventListener("keydown", e => {
+  if(e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+function sendMessage() {
+  const text = messageInput.value;
+  if (text.trim()) {
+    socket.emit("message", { text }); // Only send text, server uses socket.data.*
+    messageInput.value = "";
+  }
+}
+
 // --- Auto-join room from URL ---
 (function autoJoinFromUrl() {
   const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
