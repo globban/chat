@@ -104,27 +104,55 @@
     padding: 0;
     justify-content: flex-start;
     align-items: stretch;
+    background: #181818;
+    display: flex;
+    flex-direction: column;
   }
   #messages {
     flex: 1;
     overflow-y: auto;
-    background: #1e1e1e;
-    border: 1px solid #333;
-    padding: 1em;
+    background: #181818;
+    border: none;
+    padding: 1.2em 0.5em 1em 0.5em;
     margin: 0;
-    border-radius: 0 0 8px 8px;
+    border-radius: 0;
     min-height: 0;
+    box-shadow: none;
+    font-size: 1.04em;
   }
   .msg {
-    padding: 0.5em 0.8em;
+    padding: 0.7em 1em;
     margin-bottom: 0.5em;
-    background: #232323;
-    border-radius: 5px;
+    background: #23272f;
+    border-radius: 7px;
     word-break: break-word;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.7em;
     font-size: 1em;
+    box-shadow: 0 1px 4px #0002;
+    border: 1px solid #232323;
+    transition: background 0.15s;
+  }
+  .msg:hover {
+    background: #242a36;
+  }
+  .msg span {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.3;
+  }
+  .msg .username {
+    font-weight: bold;
+    margin-right: 0.5em;
+    min-width: 70px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .msg .text {
+    flex: 1;
+    white-space: pre-line;
+    word-break: break-word;
   }
   .msg button {
     background: none;
@@ -136,6 +164,7 @@
     padding: 0.1em 0.3em;
     border-radius: 3px;
     transition: background 0.2s, color 0.2s;
+    align-self: flex-start;
   }
   .msg button:hover {
     color: #fff;
@@ -144,13 +173,14 @@
   #messageInputBar {
     display: flex;
     gap: 0.5em;
-    padding: 1em;
-    background: #181818;
+    padding: 1em 0.7em;
+    background: #20232a;
     border-radius: 0 0 8px 8px;
-    border-top: 1px solid #222;
+    border-top: 1px solid #232323;
     position: sticky;
     bottom: 0;
     z-index: 2;
+    box-shadow: 0 -2px 8px #0002;
   }
   #messageInput {
     flex: 1;
@@ -202,6 +232,10 @@
     }
     label {
       font-size: 1em;
+    }
+    .msg .username {
+      min-width: 0;
+      text-align: left;
     }
   }
 </style>
@@ -285,7 +319,8 @@ function renderMessage(msg){
   div.className = "msg";
   div.id = "msg"+msg._id;
   div.innerHTML = `
-    <span style="color:${msg.color}; font-weight:bold;">${msg.userName}</span>: ${msg.text}
+    <span class="username" style="color:${msg.color};">${msg.userName}</span>
+    <span class="text">${msg.text}</span>
     ${msg.senderId===socket.id ? `<button onclick="deleteMsg('${msg._id}')">🗑️</button>`:""}
   `;
   messagesDiv.appendChild(div);
