@@ -322,6 +322,15 @@
     margin: 0;
     text-shadow: 0 1px 2px #0008;
   }
+  .msg .text img {
+    max-width: 100vw;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+    margin: 0.2em 0;
+    box-sizing: border-box;
+  }
   .msg .meta {
     font-size: 0.8em;
     color: #888;
@@ -532,7 +541,18 @@
       min-height: 0;
       max-height: none;
       overflow-y: auto;
-      padding-bottom: 0.5em;
+      padding: 0.3em 0.1em 0.3em 0.1em;
+      font-size: 1em;
+    }
+    .msg {
+      max-width: 98vw;
+      margin-left: 0.2em;
+      margin-right: 0.2em;
+      padding: 0.5em 0.5em 0.5em 0.5em;
+    }
+    .msg.own {
+      margin-right: 0.2em;
+      margin-left: auto;
     }
     #messageInputBar {
       position: fixed;
@@ -544,9 +564,33 @@
       margin: 0;
       z-index: 10;
       box-shadow: 0 -2px 16px #0002;
+      padding: 0.5em 0.3em;
+      gap: 0.3em;
+    }
+    #messageInput {
+      font-size: 1em;
+      padding: 0.7em 0.7em;
+    }
+    #sendBtn, #gifBtn {
+      padding: 0.7em 1em;
+      font-size: 1em;
     }
     body {
       padding-bottom: 70px; /* space for input bar */
+    }
+    #gifPicker {
+      left: 2vw;
+      width: 96vw;
+      min-width: 0;
+      max-width: 98vw;
+      bottom: 60px;
+      padding: 0.5em;
+    }
+    #gifPicker .gif-grid img {
+      width: 28vw;
+      height: 28vw;
+      max-width: 90px;
+      max-height: 90px;
     }
   }
   @media (max-width: 600px) {
@@ -561,11 +605,11 @@
       max-width: 100%;
     }
     #messages {
-      padding: 0.5em;
+      padding: 0.2em;
       font-size: 0.97em;
     }
     #messageInputBar {
-      padding: 0.5em;
+      padding: 0.3em 0.1em;
     }
     label {
       font-size: 1em;
@@ -577,6 +621,9 @@
     #roomCodeDisplay {
       font-size: 0.92em;
       padding: 0.2em 0.6em;
+    }
+    .msg .text img {
+      max-width: 98vw;
     }
   }
 </style>
@@ -719,11 +766,13 @@ function renderMessageTextWithPreview(text) {
     // If it's a GIF (tenor/giphy), show as <img>, else as iframe
     if (/\.(gif)$/i.test(url) || /tenor\.com\/view|giphy\.com\/media/.test(url)) {
       // Show as image, full width, no border
-      return `<img src="${escapeHtml(url)}" alt="GIF" style="max-width:320px;width:100%;border-radius:12px;display:block;">`;
+      // Responsive: use style to fit mobile screens
+      return `<img src="${escapeHtml(url)}" alt="GIF" style="max-width:100vw;width:100%;border-radius:12px;display:block;">`;
     } else {
       // Show as iframe, no scrollbars, no black edges
+      // Responsive: fit width on mobile
       return `
-        <div style="margin:0.2em 0 0 0;max-width:380px;">
+        <div style="margin:0.2em 0 0 0;max-width:98vw;">
           <iframe src="${escapeHtml(url)}"
             style="width:100%;height:220px;min-height:180px;max-height:320px;border-radius:12px;border:none;box-shadow:0 2px 8px #0003;background:transparent;overflow:hidden;display:block;"
             loading="lazy"
