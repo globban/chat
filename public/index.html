@@ -635,6 +635,18 @@
     .msg .text img {
       max-width: 98vw;
     }
+    body {
+      padding-bottom: 70px; /* space for input bar */
+    }
+    /* Add: show rotate tip in chatHeaderBar */
+    #rotateTip {
+      display: block;
+    }
+  }
+  @media (min-width: 601px) {
+    #rotateTip {
+      display: none !important;
+    }
   }
 </style>
 </head>
@@ -659,6 +671,9 @@
   <div id="chatMain">
     <div id="chatHeaderBar">
       <span>DB Chat</span>
+      <span id="rotateTip" style="display:none;margin:0 auto;font-size:0.93em;color:#ffb;text-align:center;font-weight:500;letter-spacing:0.01em;">
+        Rotate to landscape for more settings
+      </span>
       <span id="roomCodeDisplay" style="display:none;"></span>
     </div>
     <div id="messages"></div>
