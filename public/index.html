@@ -415,6 +415,76 @@
   #sendBtn:hover {
     background: #005bb5;
   }
+  #gifBtn {
+    background: rgba(255,255,255,0.09);
+    border: 1px solid rgba(255,255,255,0.13);
+    color: #9cf;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 0.7em 1em;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, border 0.18s;
+    box-shadow: 0 1px 8px #0001;
+    margin-right: 0.3em;
+    margin-bottom: 0;
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+  }
+  #gifBtn:hover {
+    background: #1a2a3a;
+    color: #fff;
+    border-color: #6cf;
+  }
+  #gifPicker {
+    position: absolute;
+    bottom: 60px;
+    left: 10px;
+    z-index: 100;
+    background: rgba(35,39,47,0.98);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px #000a;
+    padding: 1em;
+    display: none;
+    flex-direction: column;
+    width: 340px;
+    max-width: 96vw;
+    max-height: 350px;
+    overflow: auto;
+    border: 1.5px solid rgba(255,255,255,0.13);
+    backdrop-filter: blur(12px);
+  }
+  #gifPicker input[type="text"] {
+    width: 100%;
+    padding: 0.5em 0.7em;
+    border-radius: 6px;
+    border: 1px solid #222;
+    margin-bottom: 0.7em;
+    font-size: 1em;
+    background: #232323;
+    color: #eee;
+    outline: none;
+  }
+  #gifPicker .gif-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    justify-content: flex-start;
+  }
+  #gifPicker .gif-grid img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 7px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border 0.15s;
+  }
+  #gifPicker .gif-grid img:hover {
+    border: 2px solid #6cf;
+  }
   /* --- Responsive --- */
   @media (max-width: 900px) {
     #sidebar {
@@ -496,8 +566,13 @@
     </div>
     <div id="messages"></div>
     <div id="messageInputBar">
+      <button id="gifBtn" title="Add GIF" type="button">🎬 GIF</button>
       <input id="messageInput" autocomplete="off" placeholder="Type message..." />
       <button id="sendBtn">Send</button>
+      <div id="gifPicker">
+        <input type="text" id="gifSearch" placeholder="Search GIFs..." />
+        <div class="gif-grid" id="gifGrid"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -518,8 +593,14 @@ const sendBtn = document.getElementById("sendBtn");
 const roomCodeDisplay = document.getElementById("roomCodeDisplay");
 const copyRoomLinkBtn = document.getElementById("copyRoomLinkBtn");
 const leaveRoomBtn = document.getElementById("leaveRoomBtn");
+const gifBtn = document.getElementById("gifBtn");
+const gifPicker = document.getElementById("gifPicker");
+const gifSearch = document.getElementById("gifSearch");
+const gifGrid = document.getElementById("gifGrid");
 
 let currentRoomCode = "";
+let gifPickerVisible = false;
+let gifSearchTimeout = null;
 
 // Load last color + name
 if(localStorage.color){
@@ -663,6 +744,76 @@ function sendMessage() {
     messageInput.value = "";
   }
 }
+
+// --- GIF Picker logic ---
+gifBtn.onclick = () => {
+  gifPickerVisible = !gifPickerVisible;
+  gifPicker.style.display = gifPickerVisible ? "flex" : "none";
+  if (gifPickerVisible) {
+    gifSearch.value = "";
+    gifGrid.innerHTML = "";
+    fetchTrendingGifs();
+    gifSearch.focus();
+  }
+};
+
+gifSearch.oninput = function() {
+  if (gifSearchTimeout) clearTimeout(gifSearchTimeout);
+  gifSearchTimeout = setTimeout(() => {
+    const q = gifSearch.value.trim();
+    if (q) {
+      fetchGifs(q);
+    } else {
+      fetchTrendingGifs();
+    }
+  }, 350);
+};
+
+function fetchTrendingGifs() {
+  gifGrid.innerHTML = "<span style='color:#888;'>Loading...</span>";
+  fetch(`https://g.tenor.com/v1/trending?key=LIVDSRZULELA&limit=16`)
+    .then(r => r.json())
+    .then(data => showGifs(data.results))
+    .catch(() => gifGrid.innerHTML = "<span style='color:#c00;'>Failed to load GIFs</span>");
+}
+
+function fetchGifs(q) {
+  gifGrid.innerHTML = "<span style='color:#888;'>Searching...</span>";
+  fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(q)}&key=LIVDSRZULELA&limit=16`)
+    .then(r => r.json())
+    .then(data => showGifs(data.results))
+    .catch(() => gifGrid.innerHTML = "<span style='color:#c00;'>Failed to load GIFs</span>");
+}
+
+function showGifs(results) {
+  gifGrid.innerHTML = "";
+  if (!results || !results.length) {
+    gifGrid.innerHTML = "<span style='color:#888;'>No GIFs found</span>";
+    return;
+  }
+  results.forEach(gif => {
+    const url = gif.media[0].tinygif.url;
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "GIF";
+    img.onclick = () => {
+      // Insert GIF URL into message input and close picker
+      messageInput.value += (messageInput.value ? " " : "") + url;
+      gifPicker.style.display = "none";
+      gifPickerVisible = false;
+      messageInput.focus();
+    };
+    gifGrid.appendChild(img);
+  });
+}
+
+// Hide GIF picker if click outside
+document.addEventListener("mousedown", (e) => {
+  if (gifPickerVisible && !gifPicker.contains(e.target) && e.target !== gifBtn) {
+    gifPicker.style.display = "none";
+    gifPickerVisible = false;
+  }
+});
 
 // --- Auto-join room from URL ---
 (function autoJoinFromUrl() {
