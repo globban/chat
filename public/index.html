@@ -568,10 +568,11 @@ function renderMessage(msg){
   // Avatar: first letter of name, colored
   const avatar = `<span class="avatar" style="background:${msg.color};">${escapeHtml((msg.userName||"?")[0].toUpperCase())}</span>`;
   const own = msg.senderId === socket.id;
+  const textHtml = renderMessageTextWithPreview(msg.text);
   const bubble = `
     <div class="bubble">
       <span class="username" style="color:${msg.color};">${escapeHtml(msg.userName)}</span>
-      <span class="text">${escapeHtml(msg.text)}</span>
+      <span class="text">${textHtml}</span>
       ${own ? `<button onclick="deleteMsg('${msg._id}')">🗑️</button>`:""}
     </div>
   `;
@@ -585,6 +586,31 @@ function renderMessage(msg){
   }
   messagesDiv.appendChild(div);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// --- Link preview logic ---
+function renderMessageTextWithPreview(text) {
+  // Find first http(s):// link in the text
+  const urlRegex = /(https?:\/\/[^\s]+)/i;
+  const match = text.match(urlRegex);
+  let preview = "";
+  if (match) {
+    const url = match[0];
+    // Only allow http(s) links, and basic XSS protection
+    const safeUrl = escapeHtml(url);
+    preview = `
+      <div style="margin-top:0.5em;max-width:360px;">
+        <iframe src="${safeUrl}" style="width:100%;height:180px;border-radius:10px;border:1px solid #222;box-shadow:0 2px 8px #0003;background:#222;" loading="lazy" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>
+    `;
+  }
+  // Escape the text, but linkify the first URL
+  let safeText = escapeHtml(text);
+  if (match) {
+    // Replace only the first occurrence
+    safeText = safeText.replace(urlRegex, `<a href="${escapeHtml(match[0])}" target="_blank" rel="noopener noreferrer">${escapeHtml(match[0])}</a>`);
+  }
+  return safeText + preview;
 }
 
 // Prevent XSS in message text
