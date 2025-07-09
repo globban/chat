@@ -331,170 +331,68 @@
     margin: 0.2em 0;
     box-sizing: border-box;
   }
-  .msg .meta {
-    font-size: 0.8em;
-    color: #888;
-    margin-left: 0.7em;
-    align-self: flex-end;
-    white-space: nowrap;
-  }
-  .msg button {
-    background: none;
-    border: none;
-    color: #888;
+  .msg .text iframe {
     cursor: pointer;
-    font-size: 1.1em;
-    margin-left: 0.5em;
-    padding: 0.1em 0.3em;
-    border-radius: 3px;
-    transition: background 0.2s, color 0.2s;
-    align-self: flex-end;
+    pointer-events: auto;
+    /* visually indicate clickable on mobile */
+    transition: box-shadow 0.2s;
   }
-  .msg button:hover {
-    color: #fff;
-    background: #333;
+  .msg .text iframe:active,
+  .msg .text iframe:focus {
+    box-shadow: 0 0 0 2px #6cf;
   }
-  #sidebarUsers button.danger {
-    background: #c00 !important;
-    color: #fff !important;
-    border-color: #c00 !important;
-    font-weight: 700;
-    animation: shake 0.2s;
-  }
-  @keyframes shake {
-    0% { transform: translateX(0);}
-    25% { transform: translateX(-2px);}
-    50% { transform: translateX(2px);}
-    75% { transform: translateX(-2px);}
-    100% { transform: translateX(0);}
-  }
-  @keyframes msgIn {
-    from { opacity: 0; transform: translateY(10px);}
-    to { opacity: 1; transform: none;}
-  }
-  /* --- Message Input Bar --- */
-  #messageInputBar {
-    display: flex;
-    gap: 0.5em;
-    padding: 1em 1.2em;
-    background: rgba(35,39,47,0.65);
-    border-radius: 0 0 18px 18px;
-    border-top: 1.5px solid rgba(255,255,255,0.08);
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-    box-shadow: 0 -2px 16px #0002;
-    max-width: 700px;
-    margin: 0 auto;
-    width: 100%;
-    backdrop-filter: blur(10px);
-  }
-  #messageInput {
-    flex: 1;
-    padding: 0.8em 1em;
-    font-size: 1em;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.13);
-    color: #eee;
-    border-radius: 8px;
-    border: 1.5px solid rgba(255,255,255,0.13);
-    backdrop-filter: blur(8px) saturate(120%);
-    box-shadow: 0 1px 8px #0002;
-    transition: box-shadow 0.2s, background 0.2s;
-  }
-  #messageInput:focus {
-    box-shadow: 0 0 0 2px #06c, 0 1px 8px #0002;
-    background: rgba(255,255,255,0.18);
-    border-color: #06c;
-  }
-  #sendBtn {
-    padding: 0.8em 1.5em;
-    font-size: 1em;
-    background: #06c;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+  /* --- Iframe Modal --- */
+  #iframeModalOverlay {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    background: rgba(18,24,34,0.92);
+    align-items: center;
+    justify-content: center;
     transition: background 0.2s;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    box-shadow: 0 1px 4px #06c2;
   }
-  #sendBtn:hover {
-    background: #005bb5;
-  }
-  #gifBtn {
-    background: rgba(255,255,255,0.09);
-    border: 1px solid rgba(255,255,255,0.13);
-    color: #9cf;
-    font-weight: 500;
-    border-radius: 8px;
-    padding: 0.7em 1em;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s, border 0.18s;
-    box-shadow: 0 1px 8px #0001;
-    margin-right: 0.3em;
-    margin-bottom: 0;
-    backdrop-filter: blur(4px);
+  #iframeModalContent {
+    position: relative;
+    max-width: 98vw;
+    max-height: 90vh;
+    width: 98vw;
+    height: 60vw;
+    min-height: 220px;
+    background: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 32px #000a;
     display: flex;
     align-items: center;
-    gap: 0.3em;
+    justify-content: center;
   }
-  #gifBtn:hover {
-    background: #1a2a3a;
-    color: #fff;
-    border-color: #6cf;
+  #iframeModalContent iframe {
+    width: 98vw;
+    height: 60vw;
+    min-height: 220px;
+    max-height: 80vh;
+    border-radius: 16px;
+    border: none;
+    background: #222;
+    box-shadow: 0 2px 16px #0008;
+    display: block;
   }
-  #gifPicker {
+  #iframeModalClose {
     position: absolute;
-    bottom: 60px;
-    left: 10px;
-    z-index: 100;
-    background: rgba(35,39,47,0.98);
-    border-radius: 12px;
-    box-shadow: 0 4px 24px #000a;
-    padding: 1em;
-    display: none;
-    flex-direction: column;
-    width: 340px;
-    max-width: 96vw;
-    max-height: 350px;
-    overflow: auto;
-    border: 1.5px solid rgba(255,255,255,0.13);
-    backdrop-filter: blur(12px);
-  }
-  #gifPicker input[type="text"] {
-    width: 100%;
-    padding: 0.5em 0.7em;
-    border-radius: 6px;
-    border: 1px solid #222;
-    margin-bottom: 0.7em;
-    font-size: 1em;
-    background: #232323;
-    color: #eee;
-    outline: none;
-  }
-  #gifPicker .gif-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5em;
-    justify-content: flex-start;
-  }
-  #gifPicker .gif-grid img {
-    width: 90px;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 7px;
+    top: 0.5em;
+    right: 1em;
+    font-size: 2em;
+    color: #fff;
+    background: none;
+    border: none;
     cursor: pointer;
-    border: 2px solid transparent;
-    transition: border 0.15s;
+    z-index: 2;
+    text-shadow: 0 2px 8px #000a;
+    padding: 0.1em 0.3em;
   }
-  #gifPicker .gif-grid img:hover {
-    border: 2px solid #6cf;
+  #iframeModalClose:active {
+    color: #6cf;
   }
-  /* --- Responsive --- */
   @media (max-width: 900px) {
     #sidebar {
       width: 120px;
@@ -610,6 +508,11 @@
     }
     #messageInputBar {
       padding: 0.3em 0.1em;
+      min-height: 48px;
+    }
+    #sendBtn, #gifBtn {
+      min-width: 48px;
+      font-size: 1em;
     }
     label {
       font-size: 1em;
@@ -661,6 +564,14 @@
         <div class="gif-grid" id="gifGrid"></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Iframe Modal Overlay -->
+<div id="iframeModalOverlay">
+  <div id="iframeModalContent">
+    <button id="iframeModalClose" title="Close">&times;</button>
+    <!-- iframe will be injected here -->
   </div>
 </div>
 
@@ -756,6 +667,22 @@ function renderMessage(msg){
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
+// --- Iframe Modal Logic ---
+const iframeModalOverlay = document.getElementById("iframeModalOverlay");
+const iframeModalContent = document.getElementById("iframeModalContent");
+const iframeModalClose = document.getElementById("iframeModalClose");
+
+// Close modal on click outside or on close button
+iframeModalOverlay.onclick = function(e) {
+  if (e.target === iframeModalOverlay || e.target === iframeModalClose) {
+    iframeModalOverlay.style.display = "none";
+    // Remove iframe
+    const oldIframe = iframeModalContent.querySelector("iframe");
+    if (oldIframe) oldIframe.remove();
+  }
+};
+iframeModalClose.onclick = iframeModalOverlay.onclick;
+
 // --- Link/GIF preview logic ---
 function renderMessageTextWithPreview(text) {
   // Find first http(s):// link in the text
@@ -771,16 +698,19 @@ function renderMessageTextWithPreview(text) {
     } else {
       // Show as iframe, no scrollbars, no black edges
       // Responsive: fit width on mobile
+      // Add a wrapper with a data-url for popout
       return `
-        <div style="margin:0.2em 0 0 0;max-width:98vw;">
+        <div class="iframe-preview-wrapper" data-url="${escapeHtml(url)}" style="margin:0.2em 0 0 0;max-width:98vw;cursor:pointer;">
           <iframe src="${escapeHtml(url)}"
-            style="width:100%;height:220px;min-height:180px;max-height:320px;border-radius:12px;border:none;box-shadow:0 2px 8px #0003;background:transparent;overflow:hidden;display:block;"
+            style="width:100%;height:220px;min-height:180px;max-height:320px;border-radius:12px;border:none;box-shadow:0 2px 8px #0003;background:transparent;overflow:hidden;display:block;pointer-events:none;"
             loading="lazy"
             referrerpolicy="no-referrer"
             sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
             scrolling="no"
-            allowfullscreen>
+            allowfullscreen
+            tabindex="-1">
           </iframe>
+          <div style="position:absolute;top:8px;right:16px;background:rgba(0,0,0,0.5);color:#fff;padding:2px 8px;border-radius:8px;font-size:0.9em;pointer-events:none;">Tap to open</div>
         </div>
       `;
     }
@@ -789,124 +719,34 @@ function renderMessageTextWithPreview(text) {
   return escapeHtml(text);
 }
 
-// Prevent XSS in message text
-function escapeHtml(text) {
-  return text.replace(/[&<>"']/g, function(m) {
-    return ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[m];
-  });
-}
-
-function deleteMsg(id){
-  socket.emit("deleteMessage", id);
-}
-
-copyRoomLinkBtn.onclick = () => {
-  if (!currentRoomCode) return;
-  const url = `${location.origin}/${encodeURIComponent(currentRoomCode)}`;
-  navigator.clipboard.writeText(url).then(() => {
-    copyRoomLinkBtn.textContent = "Copied!";
-    setTimeout(() => copyRoomLinkBtn.textContent = "Copy Room Link", 1200);
-  });
-};
-
-leaveRoomBtn.onclick = () => {
-  socket.emit("leaveRoom");
-  chatSection.style.display = "none";
-  joinSection.style.display = "flex";
-  messagesDiv.innerHTML = "";
-  roomCodeDisplay.style.display = "none";
-  currentRoomCode = "";
-};
-
-sendBtn.onclick = sendMessage;
-messageInput.addEventListener("keydown", e => {
-  if(e.key === "Enter" && !e.shiftKey) {
+// --- Iframe popout event delegation ---
+messagesDiv.addEventListener("click", function(e) {
+  // Find if clicked element is inside an iframe-preview-wrapper
+  let el = e.target;
+  while (el && !el.classList?.contains("iframe-preview-wrapper")) {
+    el = el.parentElement;
+  }
+  if (el && el.dataset.url) {
     e.preventDefault();
-    sendMessage();
-  }
-});
-
-function sendMessage() {
-  const text = messageInput.value;
-  if (text.trim()) {
-    socket.emit("message", { text }); // Only send text, server uses socket.data.*
-    messageInput.value = "";
-  }
-}
-
-// --- GIF Picker logic ---
-gifBtn.onclick = () => {
-  gifPickerVisible = !gifPickerVisible;
-  gifPicker.style.display = gifPickerVisible ? "flex" : "none";
-  if (gifPickerVisible) {
-    gifSearch.value = "";
-    gifGrid.innerHTML = "";
-    fetchTrendingGifs();
-    gifSearch.focus();
-  }
-};
-
-gifSearch.oninput = function() {
-  if (gifSearchTimeout) clearTimeout(gifSearchTimeout);
-  gifSearchTimeout = setTimeout(() => {
-    const q = gifSearch.value.trim();
-    if (q) {
-      fetchGifs(q);
-    } else {
-      fetchTrendingGifs();
-    }
-  }, 350);
-};
-
-function fetchTrendingGifs() {
-  gifGrid.innerHTML = "<span style='color:#888;'>Loading...</span>";
-  fetch(`https://g.tenor.com/v1/trending?key=LIVDSRZULELA&limit=16`)
-    .then(r => r.json())
-    .then(data => showGifs(data.results))
-    .catch(() => gifGrid.innerHTML = "<span style='color:#c00;'>Failed to load GIFs</span>");
-}
-
-function fetchGifs(q) {
-  gifGrid.innerHTML = "<span style='color:#888;'>Searching...</span>";
-  fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(q)}&key=LIVDSRZULELA&limit=16`)
-    .then(r => r.json())
-    .then(data => showGifs(data.results))
-    .catch(() => gifGrid.innerHTML = "<span style='color:#c00;'>Failed to load GIFs</span>");
-}
-
-function showGifs(results) {
-  gifGrid.innerHTML = "";
-  if (!results || !results.length) {
-    gifGrid.innerHTML = "<span style='color:#888;'>No GIFs found</span>";
-    return;
-  }
-  results.forEach(gif => {
-    const url = gif.media[0].tinygif.url;
-    const img = document.createElement("img");
-    img.src = url;
-    img.alt = "GIF";
-    img.onclick = () => {
-      // Send GIF immediately as a message, do not put in textbox
-      socket.emit("message", { text: url });
-      gifPicker.style.display = "none";
-      gifPickerVisible = false;
-      messageInput.focus();
-    };
-    gifGrid.appendChild(img);
-  });
-}
-
-// Hide GIF picker if click outside
-document.addEventListener("mousedown", (e) => {
-  if (gifPickerVisible && !gifPicker.contains(e.target) && e.target !== gifBtn) {
-    gifPicker.style.display = "none";
-    gifPickerVisible = false;
+    // Show modal and inject iframe
+    const url = el.dataset.url;
+    let modalIframe = document.createElement("iframe");
+    modalIframe.src = url;
+    modalIframe.style.width = "98vw";
+    modalIframe.style.height = "60vw";
+    modalIframe.style.maxHeight = "80vh";
+    modalIframe.style.borderRadius = "16px";
+    modalIframe.style.border = "none";
+    modalIframe.style.background = "#222";
+    modalIframe.style.boxShadow = "0 2px 16px #0008";
+    modalIframe.setAttribute("allowfullscreen", "");
+    modalIframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-forms");
+    modalIframe.setAttribute("referrerpolicy", "no-referrer");
+    // Remove old iframe if any
+    const oldIframe = iframeModalContent.querySelector("iframe");
+    if (oldIframe) oldIframe.remove();
+    iframeModalContent.appendChild(modalIframe);
+    iframeModalOverlay.style.display = "flex";
   }
 });
 
