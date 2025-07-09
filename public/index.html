@@ -669,28 +669,32 @@ function renderMessage(msg){
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// --- Link preview logic ---
+// --- Link/GIF preview logic ---
 function renderMessageTextWithPreview(text) {
   // Find first http(s):// link in the text
   const urlRegex = /(https?:\/\/[^\s]+)/i;
   const match = text.match(urlRegex);
   if (match) {
     const url = match[0];
-    // Only allow http(s) links, and basic XSS protection
-    const safeUrl = escapeHtml(url);
-    // Only show the iframe, no link above, and style for full preview
-    return `
-      <div style="margin:0.2em 0 0 0;max-width:380px;">
-        <iframe src="${safeUrl}"
-          style="width:100%;height:220px;min-height:180px;max-height:320px;border-radius:12px;border:none;box-shadow:0 2px 8px #0003;background:#232323;overflow:hidden;"
-          loading="lazy"
-          referrerpolicy="no-referrer"
-          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-          scrolling="no"
-          allowfullscreen>
-        </iframe>
-      </div>
-    `;
+    // If it's a GIF (tenor/giphy), show as <img>, else as iframe
+    if (/\.(gif)$/i.test(url) || /tenor\.com\/view|giphy\.com\/media/.test(url)) {
+      // Show as image, full width, no border
+      return `<img src="${escapeHtml(url)}" alt="GIF" style="max-width:320px;width:100%;border-radius:12px;display:block;">`;
+    } else {
+      // Show as iframe, no scrollbars, no black edges
+      return `
+        <div style="margin:0.2em 0 0 0;max-width:380px;">
+          <iframe src="${escapeHtml(url)}"
+            style="width:100%;height:220px;min-height:180px;max-height:320px;border-radius:12px;border:none;box-shadow:0 2px 8px #0003;background:transparent;overflow:hidden;display:block;"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            scrolling="no"
+            allowfullscreen>
+          </iframe>
+        </div>
+      `;
+    }
   }
   // No link: just escape and show text
   return escapeHtml(text);
@@ -799,8 +803,8 @@ function showGifs(results) {
     img.src = url;
     img.alt = "GIF";
     img.onclick = () => {
-      // Insert GIF URL into message input and close picker
-      messageInput.value += (messageInput.value ? " " : "") + url;
+      // Send GIF immediately as a message, do not put in textbox
+      socket.emit("message", { text: url });
       gifPicker.style.display = "none";
       gifPickerVisible = false;
       messageInput.focus();
