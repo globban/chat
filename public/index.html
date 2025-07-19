@@ -22,7 +22,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
+      height: 100%;
     }
 
     #joinSection, #chatSection {
@@ -59,7 +60,8 @@
     #chatSection {
       display: none;
       flex-direction: column;
-      height: 100vh;
+      height: 100%;
+      min-height: 100vh;
       max-width: 100vw;
       border: none;
       border-radius: 0px;
@@ -96,6 +98,7 @@
       background: #fafafa;
       font-size: 15px;
       line-height: 1.4;
+      overflow-anchor: none;
     }
 
     .message {
@@ -105,7 +108,7 @@
     .message .username {
       font-weight: 600;
       margin-bottom: 4px;
-      color: var(--primary-dark);
+      /* color set dynamically */
     }
 
     .message .text {
@@ -149,7 +152,6 @@
       gap: 8px;
       flex-wrap: wrap;
       flex-direction: row !important;
-
     }
 
     /* iframe placeholder style */
@@ -175,6 +177,15 @@
 
     #livePreview img {
       max-width: 100%;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    #livePreview iframe {
+      width: 100%;
+      height: 150px;
+      border: 1px solid #ccc;
       border-radius: 6px;
       margin-bottom: 8px;
       display: block;
@@ -244,7 +255,7 @@
     }
 
     body.dark .message .username {
-      color: var(--primary);
+      /* overridden by inline color */
     }
 
     #gifBtn {
@@ -302,7 +313,6 @@
     #gifPicker .gif-grid img:hover {
       border: 2px solid #6cf;
     }
-
   </style>
 </head>
 <body>
@@ -311,6 +321,10 @@
   <div id="joinSection">
     <input id="nameInput" placeholder="Name" autocomplete="off" />
     <input id="roomInput" placeholder="Room" autocomplete="off" />
+    
+    <label for="colorPicker" style="display:block; margin-bottom: 8px; font-weight:bold;">Pick your color:</label>
+    <input type="color" id="colorPicker" value="#28a745" style="width: 100%; height: 40px; border:none; border-radius:6px; cursor:pointer; margin-bottom: 12px;" />
+
     <div id="errorMsg"></div>
     <button id="joinBtn">Join</button>
   </div>
@@ -368,6 +382,9 @@
     const iframePopupFrame = document.getElementById("iframePopupFrame");
     const iframePopupClose = document.getElementById("iframePopupClose");
 
+    const colorPicker = document.getElementById("colorPicker");
+    let myColor = colorPicker.value;  // default color
+
     // Socket.IO connection (fallback for UI-only mode)
     let socket;
     try {
@@ -393,7 +410,19 @@
         document.body.classList.add("dark");
         themeToggle.checked = true;
       }
+      adjustHeight();
     });
+
+    // Adjust chatSection height to visible viewport height on resize
+    function adjustHeight() {
+      if (chatSection.style.display !== "none") {
+        chatSection.style.height = window.innerHeight + "px";
+      }
+    }
+
+    window.addEventListener("resize", adjustHeight);
+    window.addEventListener("orientationchange", adjustHeight);
+    window.addEventListener("load", adjustHeight);
 
     // GIF Picker toggle
     gifBtn.onclick = () => {
@@ -451,7 +480,7 @@
         img.src = url;
         img.alt = "GIF";
         img.onclick = () => {
-          socket.emit("message", { text: url });
+          socket.emit("message", { text: url, color: myColor, userName: nameInput.value.trim() || "Anonymous" });
           gifPicker.style.display = "none";
           gifPickerVisible = false;
           messageInput.focus();
@@ -501,12 +530,15 @@
         return;
       }
 
+      myColor = colorPicker.value;  // get chosen color on join
+
       chatSection.style.display = "flex";
       joinSection.style.display = "none";
 
       roomCodeDisplay.textContent = "Room: " + roomCode;
-      socket.emit("joinRoom", { roomCode, userName });
+      socket.emit("joinRoom", { roomCode, userName, color: myColor });
       currentRoomCode = roomCode;
+      adjustHeight();
     };
 
     // Leave button handler
@@ -536,6 +568,9 @@
       const usernameSpan = document.createElement("div");
       usernameSpan.classList.add("username");
       usernameSpan.textContent = msg.userName + ":";
+      if (msg.color) {
+        usernameSpan.style.color = msg.color;
+      }
 
       const textDiv = document.createElement("div");
       textDiv.classList.add("text");
@@ -544,6 +579,7 @@
       div.appendChild(usernameSpan);
       div.appendChild(textDiv);
 
+      // Add embedded gifs and iframes previews inline
       const urls = findURLs(msg.text);
       urls.forEach(url => {
         if (isGif(url)) {
@@ -553,10 +589,21 @@
           img.classList.add("gif");
           div.appendChild(img);
         } else {
-          // iframe placeholder
+          // Show iframe live preview automatically
+          const iframe = document.createElement("iframe");
+          iframe.src = url;
+          iframe.style.width = "100%";
+          iframe.style.height = "150px";
+          iframe.style.border = "1px solid #ccc";
+          iframe.style.borderRadius = "6px";
+          iframe.style.marginTop = "8px";
+          iframe.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
+          div.appendChild(iframe);
+
+          // Also add clickable placeholder to pop out bigger iframe
           const placeholder = document.createElement("div");
           placeholder.className = "iframe-placeholder";
-          placeholder.textContent = "Click to preview: " + url;
+          placeholder.textContent = "Click to preview (popup): " + url;
           placeholder.onclick = () => {
             iframePopupFrame.src = url;
             iframePopup.style.display = "flex";
@@ -569,70 +616,58 @@
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    // Send message
+    // Send message handler
     sendBtn.onclick = () => {
       const text = messageInput.value.trim();
       if (text) {
-        socket.emit("message", { text });
+        socket.emit("message", { text, color: myColor, userName: nameInput.value.trim() || "Anonymous" });
         messageInput.value = "";
         livePreview.innerHTML = "";
       }
     };
 
+    // Enter key sends message
     messageInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
+      if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         sendBtn.click();
       }
     });
 
-    // Live preview of links and gifs
+    // Live preview updates as you type (show iframe or gif)
     messageInput.addEventListener("input", () => {
-      const text = messageInput.value;
       livePreview.innerHTML = "";
-      const urls = findURLs(text);
-
+      const urls = findURLs(messageInput.value);
       urls.forEach(url => {
         if (isGif(url)) {
           const img = document.createElement("img");
           img.src = url;
-          img.alt = "GIF preview";
+          img.alt = "GIF Preview";
           livePreview.appendChild(img);
         } else {
-          const placeholder = document.createElement("div");
-          placeholder.className = "iframe-placeholder";
-          placeholder.textContent = "Click to preview: " + url;
-          placeholder.onclick = () => {
-            iframePopupFrame.src = url;
-            iframePopup.style.display = "flex";
-          };
-          livePreview.appendChild(placeholder);
+          const iframe = document.createElement("iframe");
+          iframe.src = url;
+          iframe.style.width = "100%";
+          iframe.style.height = "150px";
+          iframe.style.border = "1px solid #ccc";
+          iframe.style.borderRadius = "6px";
+          iframe.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
+          livePreview.appendChild(iframe);
         }
       });
     });
 
-    // Close iframe popup
+    // Close iframe popup modal
     iframePopupClose.onclick = () => {
       iframePopup.style.display = "none";
       iframePopupFrame.src = "";
     };
 
-    // Close popup on outside click
-    iframePopup.addEventListener("click", e => {
+    iframePopup.onclick = (e) => {
       if (e.target === iframePopup) {
         iframePopupClose.click();
       }
-    });
-
-    function adjustHeight() {
-  const chatSection = document.getElementById("chatSection");
-  const vh = window.innerHeight;
-  chatSection.style.height = vh + "px";
-}
-
-window.addEventListener("resize", adjustHeight);
-window.addEventListener("orientationchange", adjustHeight);
-window.addEventListener("load", adjustHeight);
+    };
 
   </script>
 </body>
