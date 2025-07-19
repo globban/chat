@@ -518,31 +518,36 @@
 
     // Join button handler
     joinBtn.onclick = () => {
-      errorMsg.style.display = "none";
-      const roomCode = roomInput.value.trim();
-      const userName = nameInput.value.trim() || "Anonymous";
+  errorMsg.style.display = "none";
 
-      if (!roomCode) {
-        errorMsg.textContent = "Room name is required.";
-        errorMsg.style.display = "block";
-        return;
-      }
-      if (!validateRoomName(roomCode)) {
-        errorMsg.textContent = "Invalid room name! Use letters, numbers, '-' and '_'.";
-        errorMsg.style.display = "block";
-        return;
-      }
+  const roomCode = roomInput.value.trim();
+  const userName = nameInput.value.trim() || "Anonymous";
 
-      myColor = colorPicker.value;  // get chosen color on join
+  if (!roomCode) {
+    errorMsg.textContent = "Room name is required.";
+    errorMsg.style.display = "block";
+    return;
+  }
 
-      chatSection.style.display = "flex";
-      joinSection.style.display = "none";
+  if (!validateRoomName(roomCode)) {
+    errorMsg.textContent = "Invalid room name! Use letters, numbers, '-' and '_'.";
+    errorMsg.style.display = "block";
+    return;
+  }
 
-      roomCodeDisplay.textContent = "Room: " + roomCode;
-      socket.emit("joinRoom", { roomCode, userName, color: myColor });
-      currentRoomCode = roomCode;
-      adjustHeight();
-    };
+  chatSection.style.display = "flex";
+  joinSection.style.display = "none";
+
+  roomCodeDisplay.textContent = "Room: " + roomCode;
+
+  socket.emit("joinRoom", { roomCode, userName, color: myColor });
+
+  currentRoomCode = roomCode;
+
+  adjustHeight();
+  focusMessageInput();
+};
+
 
     // Leave button handler
     leaveBtn.onclick = () => {
