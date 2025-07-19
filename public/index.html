@@ -1,83 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DB Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DB Chat — Sleek & Minimal</title>
   <style>
     :root {
       --primary: #28a745;
       --primary-dark: #218838;
-      --bg-light: #f4f4f4;
+      --bg-light: #f9f9f9;
       --white: #fff;
       --danger: #dc3545;
       --danger-dark: #c82333;
+      --text-main: #111;
+      --input-bg: #fff;
+      --input-border: #ccc;
+      --input-focus: var(--primary);
+      --shadow-light: rgba(0,0,0,0.1);
     }
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
+    * {
+      box-sizing: border-box;
+    }
+
+    body, html {
       margin: 0;
       padding: 0;
-      background-color: var(--bg-light);
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-light);
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      color: var(--text-main);
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    #joinSection, #chatSection {
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 95vh;
       width: 100%;
-      max-width: 500px;
+      max-width: 600px;
       background: var(--white);
-      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      box-sizing: border-box;
+      box-shadow: 0 8px 20px var(--shadow-light);
+      overflow: hidden;
     }
 
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-      box-sizing: border-box;
+    /* Join Section */
+    #joinSection {
+      padding: 30px 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
     }
 
-    button {
+    #joinSection input {
+      font-size: 1.1rem;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      border: 1.5px solid var(--input-border);
+      background: var(--input-bg);
+      transition: border-color 0.3s ease;
+      outline-offset: 2px;
+      outline-color: transparent;
+      user-select: text;
+    }
+
+    #joinSection input:focus {
+      border-color: var(--input-focus);
+      outline-color: var(--input-focus);
+    }
+
+    #errorMsg {
+      color: var(--danger);
+      margin-bottom: 16px;
+      font-weight: 600;
+      min-height: 20px;
+    }
+
+    #joinBtn {
+      padding: 14px 16px;
+      font-weight: 700;
+      font-size: 1.2rem;
       background-color: var(--primary);
       color: var(--white);
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
       transition: background-color 0.2s ease;
+      user-select: none;
     }
-
-    button:hover {
+    #joinBtn:hover {
       background-color: var(--primary-dark);
     }
 
+    /* Chat Section */
     #chatSection {
-      display: none;
+      flex: 1;
+      display: flex;
       flex-direction: column;
-      height: 90vh;
+      height: 100%;
     }
 
     #chatHeader {
+      padding: 16px 24px;
+      background: var(--bg-light);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      justify-content: space-between;
+      border-bottom: 1px solid #e1e1e1;
+      user-select: none;
     }
 
     #roomCodeDisplay {
-      font-weight: bold;
-      font-size: 18px;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--text-main);
     }
 
     #leaveBtn {
       background-color: var(--danger);
+      border: none;
+      border-radius: 8px;
+      color: var(--white);
+      padding: 10px 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      user-select: none;
     }
-
     #leaveBtn:hover {
       background-color: var(--danger-dark);
     }
@@ -85,92 +142,173 @@
     #messages {
       flex: 1;
       overflow-y: auto;
-      border: 1px solid #ddd;
-      padding: 10px;
-      margin-bottom: 12px;
-      border-radius: 6px;
-      background: #fafafa;
-      font-size: 15px;
-      line-height: 1.4;
+      padding: 20px 24px;
+      background: var(--white);
+      font-size: 1rem;
+      line-height: 1.5;
+      word-break: break-word;
     }
 
     .message {
-      margin-bottom: 12px;
+      margin-bottom: 20px;
+      user-select: text;
     }
 
     .message .username {
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--primary-dark);
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      user-select: text;
     }
 
     .message .text {
       white-space: pre-wrap;
-      word-wrap: break-word;
+      user-select: text;
     }
 
     .message iframe {
-      margin-top: 8px;
+      margin-top: 10px;
       width: 100%;
-      height: 200px;
+      max-height: 250px;
       border: none;
-      border-radius: 6px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: box-shadow 0.25s ease;
+      user-select: none;
+    }
+    .message iframe:hover {
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
     }
 
     .message img.gif {
-      margin-top: 8px;
+      margin-top: 10px;
       max-width: 100%;
-      border-radius: 6px;
+      border-radius: 12px;
       display: block;
+      cursor: default;
+      user-select: none;
+      filter: drop-shadow(0 0 1px rgba(0,0,0,0.1));
+      transition: filter 0.2s ease;
+    }
+    .message img.gif:hover {
+      filter: drop-shadow(0 0 5px rgba(0,0,0,0.3));
+    }
+
+    #inputWrapper {
+      padding: 16px 24px;
+      border-top: 1px solid #e1e1e1;
+      display: flex;
+      gap: 12px;
+      background: var(--bg-light);
+    }
+
+    #messageInput {
+      flex: 1;
+      font-size: 1.1rem;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid var(--input-border);
+      outline-offset: 2px;
+      outline-color: transparent;
+      transition: border-color 0.3s ease;
+      user-select: text;
+    }
+
+    #messageInput:focus {
+      border-color: var(--input-focus);
+      outline-color: var(--input-focus);
+    }
+
+    #sendBtn {
+      background-color: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0 22px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s ease;
+    }
+    #sendBtn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* Scrollbar for messages */
+    #messages::-webkit-scrollbar {
+      width: 8px;
+    }
+    #messages::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+    #messages::-webkit-scrollbar-track {
+      background: #eee;
     }
 
     /* Responsive */
     @media (max-width: 600px) {
-      body {
-        padding: 10px;
-        height: auto;
-      }
-
-      #joinSection, #chatSection {
+      #app {
+        border-radius: 0;
+        height: 100vh;
         max-width: 100%;
-        height: auto;
       }
-
-      #chatSection {
-        height: 95vh;
+      #chatHeader {
+        padding: 12px 16px;
       }
-    }
-
-    /* Error message style */
-    #errorMsg {
-      color: var(--danger);
-      font-weight: bold;
-      margin-bottom: 12px;
-      display: none;
+      #messages {
+        padding: 14px 16px;
+      }
+      #inputWrapper {
+        padding: 12px 16px;
+        gap: 8px;
+      }
+      #messageInput {
+        font-size: 1rem;
+      }
+      #sendBtn {
+        font-size: 1rem;
+        padding: 0 16px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div id="joinSection">
-    <input id="nameInput" placeholder="Name" autocomplete="off" />
-    <input id="roomInput" placeholder="Room (letters, numbers, -, _ only)" autocomplete="off"/>
-    <div id="errorMsg"></div>
-    <button id="joinBtn">Join</button>
+  <div id="app">
+    <section id="joinSection">
+      <input id="nameInput" placeholder="Your name (optional)" autocomplete="off" />
+      <input id="roomInput" placeholder="Room (letters, numbers, -, _ only)" autocomplete="off" />
+      <div id="errorMsg"></div>
+      <button id="joinBtn">Join Chat</button>
+    </section>
+
+    <section id="chatSection" style="display:none;">
+      <header id="chatHeader">
+        <div id="roomCodeDisplay"></div>
+        <button id="leaveBtn" title="Leave room">Leave</button>
+      </header>
+
+      <main id="messages" aria-live="polite" aria-atomic="true"></main>
+
+      <form id="inputWrapper" onsubmit="return false;">
+        <input
+          id="messageInput"
+          placeholder="Type a message or /gif search-term"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Message input"
+          autofocus
+        />
+        <button id="sendBtn" aria-label="Send message">Send</button>
+      </form>
+    </section>
   </div>
 
-  <div id="chatSection">
-    <div id="chatHeader">
-      <div id="roomCodeDisplay"></div>
-      <button id="leaveBtn">Leave</button>
-    </div>
-    <div id="messages"></div>
-    <input id="messageInput" placeholder="Type a message..." autocomplete="off"/>
-    <button id="sendBtn">Send</button>
-  </div>
-
-  <script src="/socket.io/socket.io.js"></script>
   <script>
+    const TENOR_API_KEY = "LIVDSRZULELA"; // public test key from Tenor docs
+
     let socket;
     try {
       socket = io();
@@ -193,20 +331,81 @@
 
     let currentRoomCode = "";
 
-    // Validate room name: letters, numbers, dash, underscore only
+    // Room name validation
     function validateRoomName(name) {
       return /^[a-zA-Z0-9-_]+$/.test(name);
     }
 
-    // Detect if text contains a URL (simple regex)
+    // Detect URLs in text (simple)
     function findURLs(text) {
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       return text.match(urlRegex) || [];
     }
 
-    // Check if URL is a GIF
+    // Check if URL is GIF
     function isGif(url) {
       return url.toLowerCase().endsWith(".gif");
+    }
+
+    // Render message with URLs, GIFs, iframes
+    function renderMessage(msg) {
+      const div = document.createElement("div");
+      div.classList.add("message");
+
+      const usernameSpan = document.createElement("div");
+      usernameSpan.classList.add("username");
+      usernameSpan.textContent = msg.userName + ":";
+
+      const textDiv = document.createElement("div");
+      textDiv.classList.add("text");
+      textDiv.textContent = msg.text;
+
+      div.appendChild(usernameSpan);
+      div.appendChild(textDiv);
+
+      // Parse URLs, embed gifs or iframes
+      const urls = findURLs(msg.text);
+      urls.forEach(url => {
+        if (isGif(url)) {
+          const img = document.createElement("img");
+          img.src = url;
+          img.alt = "GIF";
+          img.classList.add("gif");
+          div.appendChild(img);
+        } else {
+          const iframe = document.createElement("iframe");
+          iframe.src = url;
+          iframe.setAttribute("loading", "lazy");
+          iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms");
+          iframe.title = "Embedded content: " + url;
+          iframe.style.cursor = "pointer";
+          iframe.onclick = () => window.open(url, "_blank", "noopener");
+          div.appendChild(iframe);
+        }
+      });
+
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Handle /gif command
+    async function handleGifCommand(searchTerm, userName) {
+      try {
+        const q = encodeURIComponent(searchTerm);
+        const limit = 1;
+        const res = await fetch(`https://tenor.googleapis.com/v2/search?q=${q}&key=${TENOR_API_KEY}&limit=${limit}`);
+        const data = await res.json();
+
+        if (data.results && data.results.length > 0) {
+          const gifUrl = data.results[0].media_formats.gif.url;
+          socket.emit("message", { text: gifUrl, userName });
+        } else {
+          socket.emit("message", { text: `No GIF found for "${searchTerm}"`, userName });
+        }
+      } catch (err) {
+        console.error("Tenor API error:", err);
+        socket.emit("message", { text: "Error fetching GIF.", userName });
+      }
     }
 
     joinBtn.onclick = () => {
@@ -225,12 +424,12 @@
         return;
       }
 
+      currentRoomCode = roomCode;
       chatSection.style.display = "flex";
       joinSection.style.display = "none";
 
       roomCodeDisplay.textContent = "Room: " + roomCode;
       socket.emit("joinRoom", { roomCode, userName });
-      currentRoomCode = roomCode;
     };
 
     leaveBtn.onclick = () => {
@@ -238,7 +437,7 @@
       currentRoomCode = "";
       messagesDiv.innerHTML = "";
       chatSection.style.display = "none";
-      joinSection.style.display = "block";
+      joinSection.style.display = "flex";
       errorMsg.style.display = "none";
     };
 
@@ -249,54 +448,35 @@
 
     socket.on("message", renderMessage);
 
-    function renderMessage(msg) {
-      const div = document.createElement("div");
-      div.classList.add("message");
+    sendBtn.onclick = async () => {
+      const text = messageInput.value.trim();
+      const userName = nameInput.value.trim() || "Anonymous";
+      if (!text) return;
 
-      const usernameSpan = document.createElement("div");
-      usernameSpan.classList.add("username");
-      usernameSpan.textContent = msg.userName + ":";
-
-      const textDiv = document.createElement("div");
-      textDiv.classList.add("text");
-      textDiv.textContent = msg.text;
-
-      div.appendChild(usernameSpan);
-      div.appendChild(textDiv);
-
-      // parse URLs and render iframes or gifs below the text
-      const urls = findURLs(msg.text);
-      urls.forEach(url => {
-        if (isGif(url)) {
-          const img = document.createElement("img");
-          img.src = url;
-          img.alt = "GIF";
-          img.classList.add("gif");
-          div.appendChild(img);
+      // Handle /gif command: user types "/gif kittens"
+      if (text.startsWith("/gif ")) {
+        const searchTerm = text.substring(5).trim();
+        if (searchTerm.length === 0) {
+          socket.emit("message", { text: "Please provide a search term for /gif command.", userName });
         } else {
-          const iframe = document.createElement("iframe");
-          iframe.src = url;
-          iframe.setAttribute("loading", "lazy");
-          iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms");
-          div.appendChild(iframe);
+          await handleGifCommand(searchTerm, userName);
         }
-      });
-
-      messagesDiv.appendChild(div);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-
-    sendBtn.onclick = () => {
-      const text = messageInput.value;
-      if (text.trim()) {
-        socket.emit("message", { text });
-        messageInput.value = "";
+      } else {
+        socket.emit("message", { text, userName });
       }
+
+      messageInput.value = "";
+      messageInput.focus();
     };
 
     messageInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") sendBtn.click();
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendBtn.click();
+      }
     });
+
   </script>
+
 </body>
 </html>
