@@ -1,1014 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>DB chat</title>
-<style>
-  body {
-    font-family: system-ui, sans-serif;
-    margin: 0;
-    min-height: 100vh;
-    background: url('https://images.unsplash.com/photo-1751378639125-07bae36d4556?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center center/cover no-repeat fixed;
-    color: #eee;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    position: relative;
-    overflow: hidden;
-  }
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(18, 24, 34, 0.32); /* less dark overlay */
-    z-index: 0;
-    pointer-events: none;
-    backdrop-filter: blur(8px) saturate(120%);
-  }
-  /* --- Join Section --- */
-  #joinSection, #chatSection {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 0;
-    padding: 0;
-    height: 100vh;
-    position: relative;
-    z-index: 1;
-  }
-  #joininput {
-    display: flex;
-    flex-direction: column;
-    gap: 1.1em;
-    background: rgba(35,35,35,0.38);
-    padding: 2em 2em 1.5em 2em;
-    border-radius: 18px;
-    box-shadow: 0 2px 32px #000a;
-    min-width: 260px;
-    max-width: 90vw;
-    align-items: stretch;
-    backdrop-filter: blur(18px) saturate(160%);
-    border: 1.5px solid rgba(255,255,255,0.08);
-  }
-  #nameInput, #roomInput {
-    width: 100%;
-    max-width: 260px;
-    padding: 0.7em 1em;
-    font-size: 1em;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.13);
-    color: #eee;
-    margin-bottom: 0.2em;
-    outline: none;
-    box-sizing: border-box;
-    transition: box-shadow 0.2s, background 0.2s;
-    border: 1.5px solid rgba(255,255,255,0.13);
-    backdrop-filter: blur(8px) saturate(120%);
-    box-shadow: 0 1px 8px #0002;
-  }
-  #nameInput:focus, #roomInput:focus {
-    box-shadow: 0 0 0 2px #06c, 0 1px 8px #0002;
-    background: rgba(255,255,255,0.18);
-    border-color: #06c;
-  }
-  #colorInput {
-    width: 38px;
-    height: 32px;
-    border: none;
-    background: rgba(255,255,255,0.13);
-    cursor: pointer;
-    padding: 0;
-    border-radius: 6px;
-    box-shadow: 0 0 0 1px #444;
-    transition: box-shadow 0.2s, background 0.2s;
-    margin: 0;
-    vertical-align: middle;
-    display: inline-block;
-    backdrop-filter: blur(8px) saturate(120%);
-  }
-  #colorInput:focus {
-    box-shadow: 0 0 0 2px #06c;
-    outline: none;
-    background: rgba(255,255,255,0.18);
-  }
-  /* --- Chat Section Layout --- */
-  #chatSection {
-    width: 100vw;
-    max-width: 100vw;
-    height: 100vh;
-    padding: 0;
-    justify-content: flex-start;
-    align-items: stretch;
-    background: none;
-    display: flex;
-    flex-direction: row;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-  }
-  #sidebar {
-    width: 220px;
-    background: rgba(32,35,42,0.55);
-    border-right: 1.5px solid rgba(255,255,255,0.08);
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 0;
-    z-index: 2;
-    min-width: 120px;
-    max-width: 40vw;
-    box-shadow: 2px 0 16px #0003;
-    backdrop-filter: blur(18px) saturate(120%);
-  }
-  #sidebarHeader {
-    padding: 1.1em 1.2em 0.7em 1.2em;
-    font-size: 1.1em;
-    font-weight: 600;
-    color: #6cf;
-    border-bottom: 1.5px solid rgba(255,255,255,0.08);
-    background: rgba(35,39,47,0.65);
-    letter-spacing: 0.03em;
-    backdrop-filter: blur(8px);
-  }
-  #sidebarUsers {
-    flex: 1;
-    padding: 1em 1.2em;
-    color: #bbb;
-    font-size: 0.98em;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0.7em;
-  }
-  #sidebarUsers button {
-    background: rgba(255,255,255,0.09);
-    border: 1px solid rgba(255,255,255,0.13);
-    color: #9cf;
-    font-weight: 500;
-    border-radius: 8px;
-    padding: 0.7em 0.5em;
-    margin-bottom: 0.5em;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s, border 0.18s;
-    box-shadow: 0 1px 8px #0001;
-    backdrop-filter: blur(4px);
-  }
-  #sidebarUsers button:hover {
-    background: #1a2a3a;
-    color: #fff;
-    border-color: #6cf;
-  }
-  #chatMain {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    max-width: 700px;
-    margin: 0 auto;
-    width: 100%;
-    height: 100%;
-    position: relative;
-    background: none;
-    z-index: 1;
-  }
-  #chatHeaderBar {
-    width: 100%;
-    background: rgba(35,39,47,0.65);
-    color: #9cf;
-    font-size: 1.08em;
-    font-weight: 600;
-    padding: 1em 1.2em;
-    border-bottom: 1.5px solid rgba(255,255,255,0.08);
-    letter-spacing: 0.04em;
-    display: flex;
-    align-items: center;
-    gap: 1em;
-    min-height: 56px;
-    box-shadow: 0 2px 16px #0002;
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    backdrop-filter: blur(10px);
-    border-radius: 0 0 18px 18px;
-  }
-  #roomCodeDisplay {
-    font-family: monospace;
-    color: #bbb;
-    background: rgba(35,35,35,0.7);
-    padding: 0.3em 0.9em;
-    border-radius: 6px;
-    letter-spacing: 0.04em;
-    box-shadow: 0 1px 4px #0002;
-    user-select: all;
-    font-size: 0.98em;
-    margin-left: auto;
-    margin-right: 0;
-    pointer-events: none;
-    display: inline-block;
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(4px);
-  }
-  /* --- Messages --- */
-  #messages {
-    flex: 1;
-    overflow-y: auto;
-    background: none;
-    border: none;
-    padding: 1.2em 0.5em 1em 0.5em;
-    margin: 0;
-    border-radius: 0;
-    min-height: 0;
-    box-shadow: none;
-    font-size: 1.04em;
-    display: flex;
-    flex-direction: column;
-    gap: 0.7em;
-    scroll-behavior: smooth;
-    z-index: 1;
-  }
-  .msg {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.7em;
-    max-width: 80%;
-    min-width: 90px;
-    word-break: break-word;
-    font-size: 1em;
-    margin-bottom: 0;
-    position: relative;
-    animation: msgIn 0.18s;
-    border-radius: 18px 18px 18px 4px;
-    background: rgba(35,39,47,0.72);
-    box-shadow: 0 1px 12px #0003;
-    border: 1.5px solid rgba(255,255,255,0.08);
-    padding: 0.7em 1.1em 0.7em 0.7em;
-    margin-left: 0.5em;
-    backdrop-filter: blur(8px) saturate(120%);
-  }
-  .msg.own {
-    align-self: flex-end;
-    background: linear-gradient(120deg, rgba(26,42,58,0.85) 60%, rgba(10,58,106,0.85) 100%);
-    border-color: #0a3a6a;
-    border-radius: 18px 18px 4px 18px;
-    margin-right: 0.5em;
-    margin-left: auto;
-    box-shadow: 0 2px 16px #0a3a6a33;
-  }
-  .msg .avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: #333;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: #fff;
-    font-size: 1em;
-    margin-right: 0.3em;
-    flex-shrink: 0;
-    border: 2px solid #232323;
-    box-shadow: 0 1px 4px #0002;
-    user-select: none;
-    backdrop-filter: blur(2px);
-  }
-  .msg.own .avatar {
-    margin-left: 0.3em;
-    margin-right: 0;
-    background: #0a3a6a;
-    color: #fff;
-    border-color: #1a2a3a;
-  }
-  .msg .bubble {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    flex: 1;
-    min-width: 0;
-  }
-  .msg.own .bubble {
-    align-items: flex-end;
-  }
-  .msg .username {
-    font-weight: bold;
-    margin-bottom: 0.1em;
-    min-width: 70px;
-    text-align: left;
-    flex-shrink: 0;
-    color: #6cf;
-    opacity: 0.85;
-    font-size: 0.98em;
-    letter-spacing: 0.01em;
-    text-shadow: 0 1px 2px #0008;
-  }
-  .msg.own .username {
-    color: #9cf;
-    opacity: 1;
-    text-align: right;
-  }
-  .msg .text {
-    flex: 1;
-    white-space: pre-line;
-    word-break: break-word;
-    color: #eee;
-    font-size: 1.09em;
-    line-height: 1.5;
-    background: none;
-    padding: 0;
-    margin: 0;
-    text-shadow: 0 1px 2px #0008;
-  }
-  .msg .text img {
-    max-width: 100vw;
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    display: block;
-    margin: 0.2em 0;
-    box-sizing: border-box;
-  }
-  .msg .meta {
-    font-size: 0.8em;
-    color: #888;
-    margin-left: 0.7em;
-    align-self: flex-end;
-    white-space: nowrap;
-  }
-  .msg button {
-    background: none;
-    border: none;
-    color: #888;
-    cursor: pointer;
-    font-size: 1.1em;
-    margin-left: 0.5em;
-    padding: 0.1em 0.3em;
-    border-radius: 3px;
-    transition: background 0.2s, color 0.2s;
-    align-self: flex-end;
-  }
-  .msg button:hover {
-    color: #fff;
-    background: #333;
-  }
-  #sidebarUsers button.danger {
-    background: #c00 !important;
-    color: #fff !important;
-    border-color: #c00 !important;
-    font-weight: 700;
-    animation: shake 0.2s;
-  }
-  @keyframes shake {
-    0% { transform: translateX(0);}
-    25% { transform: translateX(-2px);}
-    50% { transform: translateX(2px);}
-    75% { transform: translateX(-2px);}
-    100% { transform: translateX(0);}
-  }
-  @keyframes msgIn {
-    from { opacity: 0; transform: translateY(10px);}
-    to { opacity: 1; transform: none;}
-  }
-  /* --- Message Input Bar --- */
-  #messageInputBar {
-    display: flex;
-    gap: 0.5em;
-    padding: 1em 1.2em;
-    background: rgba(35,39,47,0.65);
-    border-radius: 0 0 18px 18px;
-    border-top: 1.5px solid rgba(255,255,255,0.08);
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-    box-shadow: 0 -2px 16px #0002;
-    max-width: 700px;
-    margin: 0 auto;
-    width: 100%;
-    backdrop-filter: blur(10px);
-  }
-  #messageInput {
-    flex: 1;
-    padding: 0.8em 1em;
-    font-size: 1em;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.13);
-    color: #eee;
-    border-radius: 8px;
-    border: 1.5px solid rgba(255,255,255,0.13);
-    backdrop-filter: blur(8px) saturate(120%);
-    box-shadow: 0 1px 8px #0002;
-    transition: box-shadow 0.2s, background 0.2s;
-  }
-  #messageInput:focus {
-    box-shadow: 0 0 0 2px #06c, 0 1px 8px #0002;
-    background: rgba(255,255,255,0.18);
-    border-color: #06c;
-  }
-  #sendBtn {
-    padding: 0.8em 1.5em;
-    font-size: 1em;
-    background: #06c;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    box-shadow: 0 1px 4px #06c2;
-  }
-  #sendBtn:hover {
-    background: #005bb5;
-  }
-  #gifBtn {
-    background: rgba(255,255,255,0.09);
-    border: 1px solid rgba(255,255,255,0.13);
-    color: #9cf;
-    font-weight: 500;
-    border-radius: 8px;
-    padding: 0.7em 1em;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s, border 0.18s;
-    box-shadow: 0 1px 8px #0001;
-    margin-right: 0.3em;
-    margin-bottom: 0;
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    gap: 0.3em;
-  }
-  #gifBtn:hover {
-    background: #1a2a3a;
-    color: #fff;
-    border-color: #6cf;
-  }
-  #gifPicker {
-    position: absolute;
-    bottom: 60px;
-    left: 10px;
-    z-index: 100;
-    background: rgba(35,39,47,0.98);
-    border-radius: 12px;
-    box-shadow: 0 4px 24px #000a;
-    padding: 1em;
-    display: none;
-    flex-direction: column;
-    width: 340px;
-    max-width: 96vw;
-    max-height: 350px;
-    overflow: auto;
-    border: 1.5px solid rgba(255,255,255,0.13);
-    backdrop-filter: blur(12px);
-  }
-  #gifPicker input[type="text"] {
-    width: 100%;
-    padding: 0.5em 0.7em;
-    border-radius: 6px;
-    border: 1px solid #222;
-    margin-bottom: 0.7em;
-    font-size: 1em;
-    background: #232323;
-    color: #eee;
-    outline: none;
-  }
-  #gifPicker .gif-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5em;
-    justify-content: flex-start;
-  }
-  #gifPicker .gif-grid img {
-    width: 90px;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 7px;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: border 0.15s;
-  }
-  #gifPicker .gif-grid img:hover {
-    border: 2px solid #6cf;
-  }
-  /* --- Responsive --- */
-  @media (max-width: 900px) {
-    #sidebar {
-      width: 120px;
-      min-width: 60px;
-      font-size: 0.95em;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DB Chat</title>
+  <style>
+    :root {
+      --primary: #28a745;
+      --primary-dark: #218838;
+      --bg-light: #f4f4f4;
+      --white: #fff;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
       padding: 0;
-    }
-    #chatMain, #messageInputBar {
-      max-width: 100vw;
-    }
-  }
-  @media (max-width: 700px) {
-    #sidebar {
-      display: none;
-    }
-    #chatMain, #messageInputBar {
-      max-width: 100vw;
-    }
-    #chatHeaderBar {
-      font-size: 1em;
-      padding: 0.7em 0.7em;
-    }
-    /* Ensure chat layout is column and fills height */
-    #chatSection {
-      flex-direction: column;
-      align-items: stretch;
-      height: 100vh;
-      min-height: 100vh;
-      max-height: 100vh;
-      overflow: hidden;
-    }
-    #chatMain {
-      flex: 1 1 auto;
+      background-color: var(--bg-light);
       display: flex;
-      flex-direction: column;
-      height: 100%;
-      min-height: 0;
-      max-width: 100vw;
-      margin: 0;
-      padding: 0;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
-    #messages {
-      flex: 1 1 auto;
-      min-height: 0;
-      max-height: none;
-      overflow-y: auto;
-      padding: 0.3em 0.1em 0.3em 0.1em;
-      font-size: 1em;
-      /* Add scroll padding to avoid input bar overlap */
-      scroll-padding-bottom: 80px;
-    }
-    .msg {
-      max-width: 98vw;
-      margin-left: 0.2em;
-      margin-right: 0.2em;
-      padding: 0.5em 0.5em 0.5em 0.5em;
-      /* Add scroll margin for last message */
-      scroll-margin-bottom: 90px;
-    }
-    .msg.own {
-      margin-right: 0.2em;
-      margin-left: auto;
-    }
-    #messageInputBar {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border-radius: 0;
-      max-width: 100vw;
-      margin: 0;
-      z-index: 10;
-      box-shadow: 0 -2px 16px #0002;
-      padding: 0.3em 0.1em;
-      gap: 0.2em;
-      /* Make input bar smaller */
-      min-height: 44px;
-    }
-    #messageInput {
-      font-size: 0.97em;
-      padding: 0.5em 0.5em;
-      min-height: 32px;
-      height: 32px;
-    }
-    #sendBtn, #gifBtn {
-      padding: 0.5em 0.8em;
-      font-size: 0.97em;
-      min-height: 32px;
-      height: 32px;
-    }
-    body {
-      padding-bottom: 70px; /* space for input bar */
-    }
-    #gifPicker {
-      left: 2vw;
-      width: 96vw;
-      min-width: 0;
-      max-width: 98vw;
-      bottom: 60px;
-      padding: 0.5em;
-    }
-    #gifPicker .gif-grid img {
-      width: 28vw;
-      height: 28vw;
-      max-width: 90px;
-      max-height: 90px;
-    }
-  }
-  @media (max-width: 600px) {
-    #joininput {
-      min-width: 0;
-      padding: 1em;
-      max-width: 98vw;
-    }
-    #nameInput, #roomInput {
+
+    #joinSection, #chatSection {
       width: 100%;
-      font-size: 1em;
-      max-width: 100%;
+      max-width: 500px;
+      background: var(--white);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      box-sizing: border-box;
     }
-    #messages {
-      padding: 0.2em;
-      font-size: 0.97em;
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
     }
-    #messageInputBar {
-      padding: 0.3em 0.1em;
+
+    input[type="color"] {
+      padding: 4px;
+      height: 40px;
     }
-    label {
-      font-size: 1em;
+
+    button {
+      background-color: var(--primary);
+      color: var(--white);
+      cursor: pointer;
+      transition: background-color 0.2s ease;
     }
-    .msg .username {
-      min-width: 0;
-      text-align: left;
+
+    button:hover {
+      background-color: var(--primary-dark);
     }
+
+    #chatSection {
+      display: none;
+      flex-direction: column;
+      height: 90vh;
+    }
+
+    #chatHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
     #roomCodeDisplay {
-      font-size: 0.92em;
-      padding: 0.2em 0.6em;
+      font-weight: bold;
+      font-size: 18px;
     }
-    .msg .text img {
-      max-width: 98vw;
+
+    #leaveBtn {
+      background-color: #dc3545;
     }
-    body {
-      padding-bottom: 70px; /* space for input bar */
+
+    #leaveBtn:hover {
+      background-color: #c82333;
     }
-    /* Add: show rotate tip in chatHeaderBar */
-    #rotateTip {
-      display: block;
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      background: #fafafa;
     }
-  }
-  @media (min-width: 601px) {
-    #rotateTip {
-      display: none !important;
-    }
-  }
-</style>
-</head>
-<body>
-<div id="joinSection">
-  <div id="joininput">
-    <input id="nameInput" placeholder="Name or alias" maxlength="20"/>
-    <label>Color: <input id="colorInput" type="color"></label>
-    <input id="roomInput" placeholder="Enter room code" />
-    <button id="joinBtn">Join</button>
-  </div>
-</div>
 
-<div id="chatSection" style="display:none;">
-  <div id="sidebar">
-    <div id="sidebarHeader">Room</div>
-    <div id="sidebarUsers">
-      <button id="copyRoomLinkBtn" style="width:100%;margin-bottom:0.7em;">Copy Room Link</button>
-      <button id="leaveRoomBtn" style="width:100%;">Leave Room</button>
-    </div>
-  </div>
-  <div id="chatMain">
-    <div id="chatHeaderBar">
-      <span>DB Chat</span>
-      <span id="rotateTip" style="display:none;margin:0 auto;font-size:0.93em;color:#ffb;text-align:center;font-weight:500;letter-spacing:0.01em;">
-        Rotate to landscape for more settings
-      </span>
-      <span id="roomCodeDisplay" style="display:none;"></span>
-    </div>
-    <div id="messages"></div>
-    <div id="messageInputBar">
-      <button id="gifBtn" title="Add GIF" type="button">🎬 GIF</button>
-      <input id="messageInput" autocomplete="off" placeholder="Type message..." />
-      <button id="sendBtn">Send</button>
-      <div id="gifPicker">
-        <input type="text" id="gifSearch" placeholder="Search GIFs..." />
-        <div class="gif-grid" id="gifGrid"></div>
-      </div>
-    </div>
-  </div>
-</div>
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+        height: auto;
+      }
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-const socket = io();
+      #joinSection, #chatSection {
+        max-width: 100%;
+        height: auto;
+      }
 
-const roomInput = document.getElementById("roomInput");
-const nameInput = document.getElementById("nameInput");
-const colorInput = document.getElementById("colorInput");
-const joinBtn = document.getElementById("joinBtn");
-const joinSection = document.getElementById("joinSection");
-const chatSection = document.getElementById("chatSection");
-const messagesDiv = document.getElementById("messages");
-const messageInput = document.getElementById("messageInput");
-const sendBtn = document.getElementById("sendBtn");
-const roomCodeDisplay = document.getElementById("roomCodeDisplay");
-const copyRoomLinkBtn = document.getElementById("copyRoomLinkBtn");
-const leaveRoomBtn = document.getElementById("leaveRoomBtn");
-const gifBtn = document.getElementById("gifBtn");
-const gifPicker = document.getElementById("gifPicker");
-const gifSearch = document.getElementById("gifSearch");
-const gifGrid = document.getElementById("gifGrid");
-
-let currentRoomCode = "";
-let gifPickerVisible = false;
-let gifSearchTimeout = null;
-
-// Load last color + name
-if(localStorage.color){
-  colorInput.value = localStorage.color;
-}
-if(localStorage.name){
-  nameInput.value = localStorage.name;
-}
-
-joinBtn.onclick = () => {
-  const roomCode = roomInput.value.trim();
-  const userName = nameInput.value.trim() || "Anonymous";
-  const colorHex = colorInput.value.trim().toLowerCase();
-  if(!roomCode) return;
-
-  localStorage.color = colorHex;
-  localStorage.name = userName;
-
-  socket.emit("joinRoom", { roomCode, userName, color: colorHex });
-  currentRoomCode = roomCode;
-  // Show chat UI only after server confirms join
-  // joinSection.style.display = "none";
-  // chatSection.style.display = "flex";
-  // roomCodeDisplay.textContent = "Room: " + roomCode;
-  // roomCodeDisplay.style.display = "inline-block";
-};
-
-// Wait for server to send loadMessages before showing chat UI
-socket.on("loadMessages", msgs => {
-  joinSection.style.display = "none";
-  chatSection.style.display = "flex";
-  roomCodeDisplay.textContent = "Room: " + currentRoomCode;
-  roomCodeDisplay.style.display = "inline-block";
-  messagesDiv.innerHTML = "";
-  msgs.forEach(renderMessage);
-});
-
-socket.on("message", renderMessage);
-
-socket.on("messageDeleted", id => {
-  const el = document.getElementById("msg"+id);
-  if(el) el.remove();
-});
-
-function renderMessage(msg){
-  // Avatar: first letter of name, colored
-  const avatar = `<span class="avatar" style="background:${msg.color};">${escapeHtml((msg.userName||"?")[0].toUpperCase())}</span>`;
-  const own = msg.senderId === socket.id;
-  const textHtml = renderMessageTextWithPreview(msg.text);
-  const bubble = `
-    <div class="bubble">
-      <span class="username" style="color:${msg.color};">${escapeHtml(msg.userName)}</span>
-      <span class="text">${textHtml}</span>
-      ${own ? `<button onclick="deleteMsg('${msg._id}')">🗑️</button>`:""}
-    </div>
-  `;
-  const div = document.createElement("div");
-  div.className = "msg" + (own ? " own" : "");
-  div.id = "msg"+msg._id;
-  if(own) {
-    div.innerHTML = bubble + avatar;
-  } else {
-    div.innerHTML = avatar + bubble;
-  }
-  messagesDiv.appendChild(div);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-// --- Link/GIF preview logic ---
-function renderMessageTextWithPreview(text) {
-  // Find first http(s):// link in the text
-  const urlRegex = /(https?:\/\/[^\s]+)/i;
-  const match = text.match(urlRegex);
-  if (match) {
-    const url = match[0];
-    // If it's a GIF (tenor/giphy), show as <img>, else as iframe
-    if (/\.(gif)$/i.test(url) || /tenor\.com\/view|giphy\.com\/media/.test(url)) {
-      // Show as image, full width, no border
-      // Responsive: use style to fit mobile screens
-      return `<img src="${escapeHtml(url)}" alt="GIF" style="max-width:100vw;width:100%;border-radius:12px;display:block;">`;
-    } else {
-      // Show as iframe, but wrap in a div with a class for popout
-      return `
-        <div style="margin:0.2em 0 0 0;max-width:98vw;">
-          <div class="iframe-popout-wrap" style="position:relative;cursor:pointer;">
-            <iframe src="${escapeHtml(url)}"
-              style="width:100%;height:220px;min-height:180px;max-height:320px;border-radius:12px;border:none;box-shadow:0 2px 8px #0003;background:transparent;overflow:hidden;display:block;pointer-events:none;filter:blur(0.5px) grayscale(0.2);"
-              loading="lazy"
-              referrerpolicy="no-referrer"
-              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-              scrolling="no"
-              allowfullscreen
-              tabindex="-1"
-            ></iframe>
-            <div class="iframe-popout-overlay" style="position:absolute;inset:0;border-radius:12px;background:rgba(0,0,0,0.01);"></div>
-          </div>
-        </div>
-      `;
-    }
-  }
-  // No link: just escape and show text
-  return escapeHtml(text);
-}
-
-// Prevent XSS in message text
-function escapeHtml(text) {
-  return text.replace(/[&<>"']/g, function(m) {
-    return ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[m];
-  });
-}
-
-function deleteMsg(id){
-  socket.emit("deleteMessage", id);
-}
-
-copyRoomLinkBtn.onclick = () => {
-  if (!currentRoomCode) return;
-  const url = `${location.origin}/${encodeURIComponent(currentRoomCode)}`;
-  navigator.clipboard.writeText(url).then(() => {
-    copyRoomLinkBtn.textContent = "Copied!";
-    setTimeout(() => copyRoomLinkBtn.textContent = "Copy Room Link", 1200);
-  });
-};
-
-leaveRoomBtn.onclick = () => {
-  socket.emit("leaveRoom");
-  chatSection.style.display = "none";
-  joinSection.style.display = "flex";
-  messagesDiv.innerHTML = "";
-  roomCodeDisplay.style.display = "none";
-  currentRoomCode = "";
-};
-
-sendBtn.onclick = sendMessage;
-messageInput.addEventListener("keydown", e => {
-  if(e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-});
-
-function sendMessage() {
-  const text = messageInput.value;
-  if (text.trim()) {
-    socket.emit("message", { text }); // Only send text, server uses socket.data.*
-    messageInput.value = "";
-  }
-}
-
-// --- GIF Picker logic ---
-gifBtn.onclick = () => {
-  gifPickerVisible = !gifPickerVisible;
-  gifPicker.style.display = gifPickerVisible ? "flex" : "none";
-  if (gifPickerVisible) {
-    gifSearch.value = "";
-    gifGrid.innerHTML = "";
-    fetchTrendingGifs();
-    gifSearch.focus();
-  }
-};
-
-gifSearch.oninput = function() {
-  if (gifSearchTimeout) clearTimeout(gifSearchTimeout);
-  gifSearchTimeout = setTimeout(() => {
-    const q = gifSearch.value.trim();
-    if (q) {
-      fetchGifs(q);
-    } else {
-      fetchTrendingGifs();
-    }
-  }, 350);
-};
-
-function fetchTrendingGifs() {
-  gifGrid.innerHTML = "<span style='color:#888;'>Loading...</span>";
-  fetch(`https://g.tenor.com/v1/trending?key=LIVDSRZULELA&limit=16`)
-    .then(r => r.json())
-    .then(data => showGifs(data.results))
-    .catch(() => gifGrid.innerHTML = "<span style='color:#c00;'>Failed to load GIFs</span>");
-}
-
-function fetchGifs(q) {
-  gifGrid.innerHTML = "<span style='color:#888;'>Searching...</span>";
-  fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(q)}&key=LIVDSRZULELA&limit=16`)
-    .then(r => r.json())
-    .then(data => showGifs(data.results))
-    .catch(() => gifGrid.innerHTML = "<span style='color:#c00;'>Failed to load GIFs</span>");
-}
-
-function showGifs(results) {
-  gifGrid.innerHTML = "";
-  if (!results || !results.length) {
-    gifGrid.innerHTML = "<span style='color:#888;'>No GIFs found</span>";
-    return;
-  }
-  results.forEach(gif => {
-    const url = gif.media[0].tinygif.url;
-    const img = document.createElement("img");
-    img.src = url;
-    img.alt = "GIF";
-    img.onclick = () => {
-      // Send GIF immediately as a message, do not put in textbox
-      socket.emit("message", { text: url });
-      gifPicker.style.display = "none";
-      gifPickerVisible = false;
-      messageInput.focus();
-    };
-    gifGrid.appendChild(img);
-  });
-}
-
-// Hide GIF picker if click outside
-document.addEventListener("mousedown", (e) => {
-  if (gifPickerVisible && !gifPicker.contains(e.target) && e.target !== gifBtn) {
-    gifPicker.style.display = "none";
-    gifPickerVisible = false;
-  }
-});
-
-// --- Auto-join room from URL ---
-(function autoJoinFromUrl() {
-  const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
-  if (path && path !== "" && path !== "index.html") {
-    // Pre-fill room input and auto-join
-    document.getElementById("roomInput").value = path;
-    setTimeout(() => {
-      joinBtn.click();
-    }, 100); // slight delay to ensure DOM is ready
-  }
-})();
-
-// --- Iframe popout modal logic ---
-(function setupIframePopoutModal() {
-  // Create modal elements
-  const modal = document.createElement('div');
-  modal.id = 'iframePopoutModal';
-  modal.style.cssText = `
-    display:none;position:fixed;z-index:9999;inset:0;background:rgba(18,24,34,0.82);backdrop-filter:blur(8px) saturate(120%);
-    align-items:center;justify-content:center;
-  `;
-  modal.innerHTML = `
-    <div id="iframePopoutModalContent" style="position:relative;max-width:96vw;max-height:90vh;display:flex;align-items:center;justify-content:center;">
-      <iframe id="iframePopoutModalFrame"
-        style="width:80vw;height:60vh;max-width:900px;max-height:80vh;border-radius:18px;border:none;box-shadow:0 4px 32px #000a;background:#222;"
-        allowfullscreen
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-      ></iframe>
-      <button id="iframePopoutModalClose" style="position:absolute;top:-18px;right:-18px;background:#222b;color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:1.5em;cursor:pointer;box-shadow:0 2px 8px #000a;">×</button>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  const modalFrame = document.getElementById('iframePopoutModalFrame');
-  const modalClose = document.getElementById('iframePopoutModalClose');
-
-  // Open modal with given src
-  function openIframeModal(src) {
-    modalFrame.src = src;
-    modal.style.display = 'flex';
-    setTimeout(() => { modal.focus(); }, 10);
-  }
-  // Close modal
-  function closeIframeModal() {
-    modal.style.display = 'none';
-    modalFrame.src = '';
-  }
-  modalClose.onclick = closeIframeModal;
-  modal.onclick = function(e) {
-    if (e.target === modal) closeIframeModal();
-  };
-  document.addEventListener('keydown', function(e) {
-    if (modal.style.display === 'flex' && (e.key === 'Escape' || e.key === 'Esc')) {
-      closeIframeModal();
-    }
-  });
-
-  // Delegate click on .iframe-popout-wrap to open modal
-  messagesDiv.addEventListener('click', function(e) {
-    let wrap = e.target;
-    while (wrap && !wrap.classList?.contains('iframe-popout-wrap')) {
-      wrap = wrap.parentElement;
-    }
-    if (wrap) {
-      const iframe = wrap.querySelector('iframe');
-      if (iframe && iframe.src) {
-        openIframeModal(iframe.src);
+      #chatSection {
+        height: 95vh;
       }
     }
-  });
-})();
-</script>
+  </style>
+</head>
+<body>
+
+  <div id="joinSection">
+    <input id="nameInput" placeholder="Name" autocomplete="off" />
+    <input id="colorInput" type="color" />
+    <input id="roomInput" placeholder="Room" autocomplete="off"/>
+    <button id="joinBtn">Join</button>
+  </div>
+
+  <div id="chatSection">
+    <div id="chatHeader">
+      <div id="roomCodeDisplay"></div>
+      <button id="leaveBtn">Leave</button>
+    </div>
+    <div id="messages"></div>
+    <input id="messageInput" placeholder="Type a message..." autocomplete="off"/>
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    let socket;
+    try {
+      socket = io();
+    } catch {
+      console.warn("Socket.IO not connected – UI mode only.");
+      socket = { emit: () => {}, on: () => {} };
+    }
+
+    const nameInput = document.getElementById("nameInput");
+    const colorInput = document.getElementById("colorInput");
+    const roomInput = document.getElementById("roomInput");
+    const joinBtn = document.getElementById("joinBtn");
+    const leaveBtn = document.getElementById("leaveBtn");
+    const joinSection = document.getElementById("joinSection");
+    const chatSection = document.getElementById("chatSection");
+    const roomCodeDisplay = document.getElementById("roomCodeDisplay");
+    const messagesDiv = document.getElementById("messages");
+    const messageInput = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+
+    let currentRoomCode = "";
+
+    joinBtn.onclick = () => {
+      const roomCode = roomInput.value.trim();
+      const userName = nameInput.value.trim() || "Anonymous";
+      const colorHex = colorInput.value;
+
+      if (!roomCode) return;
+
+      chatSection.style.display = "flex";
+      joinSection.style.display = "none";
+
+      roomCodeDisplay.textContent = "Room: " + roomCode;
+      socket.emit("joinRoom", { roomCode, userName, color: colorHex });
+      currentRoomCode = roomCode;
+    };
+
+    leaveBtn.onclick = () => {
+      socket.emit("leaveRoom", { roomCode: currentRoomCode });
+      currentRoomCode = "";
+      messagesDiv.innerHTML = "";
+      chatSection.style.display = "none";
+      joinSection.style.display = "block";
+    };
+
+    socket.on("loadMessages", msgs => {
+      messagesDiv.innerHTML = "";
+      msgs.forEach(renderMessage);
+    });
+
+    socket.on("message", renderMessage);
+
+    function renderMessage(msg) {
+      const div = document.createElement("div");
+      div.textContent = `${msg.userName}: ${msg.text}`;
+      div.style.color = msg.color;
+      div.style.marginBottom = "8px";
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    sendBtn.onclick = () => {
+      const text = messageInput.value;
+      if (text.trim()) {
+        socket.emit("message", { text });
+        messageInput.value = "";
+      }
+    };
+
+    messageInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") sendBtn.click();
+    });
+  </script>
 </body>
 </html>
