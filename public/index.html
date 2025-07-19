@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes" />
   <title>DB Chat</title>
   <style>
     :root {
@@ -24,6 +24,9 @@
       justify-content: center;
       min-height: 100vh;
       height: 100%;
+  overscroll-behavior-y: contain;
+  touch-action: manipulation;
+
     }
 
     #joinSection, #chatSection {
@@ -668,6 +671,59 @@
         iframePopupClose.click();
       }
     };
+
+
+    function focusMessageInput() {
+  messageInput.focus();
+  // On iOS sometimes need a delay for keyboard to show reliably
+  setTimeout(() => messageInput.focus(), 300);
+}
+
+// After join, focus input
+joinBtn.onclick = () => {
+  // ...existing code...
+  chatSection.style.display = "flex";
+  joinSection.style.display = "none";
+
+  roomCodeDisplay.textContent = "Room: " + roomCode;
+  socket.emit("joinRoom", { roomCode, userName, color: myColor });
+  currentRoomCode = roomCode;
+
+  adjustHeight();
+  focusMessageInput();  // <-- focus input here
+};
+
+// After sending message, keep focus
+sendBtn.onclick = () => {
+  const text = messageInput.value.trim();
+  if (text) {
+    socket.emit("message", { text, color: myColor, userName: nameInput.value.trim() || "Anonymous" });
+    messageInput.value = "";
+    livePreview.innerHTML = "";
+    focusMessageInput(); // <-- keep keyboard up
+  }
+};
+
+// On window resize (keyboard popup), adjust chat height dynamically
+function adjustHeight() {
+  if (chatSection.style.display !== "none") {
+    // Use window.visualViewport if available for better keyboard height handling
+    if (window.visualViewport) {
+      chatSection.style.height = window.visualViewport.height + "px";
+    } else {
+      chatSection.style.height = window.innerHeight + "px";
+    }
+  }
+}
+
+// Also listen to visualViewport resize (mobile keyboard open/close triggers)
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", adjustHeight);
+}
+
+window.addEventListener("resize", adjustHeight);
+window.addEventListener("orientationchange", adjustHeight);
+window.addEventListener("load", adjustHeight);
 
   </script>
 </body>
