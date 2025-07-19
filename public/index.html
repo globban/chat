@@ -12,7 +12,6 @@
       --white: #fff;
       --danger: #dc3545;
       --danger-dark: #c82333;
-      --text-main: #111;
     }
 
     body {
@@ -37,6 +36,7 @@
     }
 
     input, button {
+      width: 100%;
       padding: 12px;
       margin-bottom: 12px;
       border: 1px solid #ccc;
@@ -61,7 +61,8 @@
       flex-direction: column;
       height: 100vh;
       max-width: 100vw;
-      border-radius: 0;
+      border: none;
+      border-radius: 0px;
     }
 
     #chatHeader {
@@ -78,6 +79,7 @@
 
     #leaveBtn {
       background-color: var(--danger);
+      max-width: 100px;
     }
 
     #leaveBtn:hover {
@@ -88,9 +90,9 @@
       flex: 1;
       overflow-y: auto;
       border: 1px solid #ddd;
-      padding: 10px;
+      padding:  0px;
       margin-bottom: 12px;
-      border-radius: 6px;
+      border-radius: 0px;
       background: #fafafa;
       font-size: 15px;
       line-height: 1.4;
@@ -119,24 +121,24 @@
       border-radius: 6px;
     }
 
-    .message img {
+    .message img.gif {
       margin-top: 8px;
       max-width: 100%;
       border-radius: 6px;
       display: block;
     }
 
-    #chatFooter {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
     #messageInput {
-      flex: 1;
+      width: calc(100% - 100px); /* Adjust for padding */
+      flex-direction: row !important  ;
+      display: flex;
     }
 
+
+
+    /* Responsive */
+
+    /* Error message style */
     #errorMsg {
       color: var(--danger);
       font-weight: bold;
@@ -144,91 +146,62 @@
       display: none;
     }
 
-    #livePreview img {
-      max-width: 100%;
-      border-radius: 6px;
-      margin-top: 10px;
+    #sendBtn {
+      width: 100px;
+      position: relative;
+      flex-direction: row !important;
+      display: flex;
+
     }
 
-    /* Webcam Modal */
-    #webcamModal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.7);
-      display: none;
-      justify-content: center;
+    #chatFooter {
+      display: flex;
       align-items: center;
-      z-index: 9999;
-    }
-
-    #webcamBox {
-      background: #222;
-      padding: 10px;
-      border-radius: 12px;
-      text-align: center;
-    }
-
-    #webcamFeed {
-      width: 320px;
-      height: 240px;
-      border-radius: 12px;
-      background: black;
-    }
-
-    #snapBtn {
+      justify-content: space-between;
       margin-top: 10px;
-      width: 60px;
-      height: 60px;
-      background: var(--primary);
-      border: none;
-      border-radius: 50%;
-      font-size: 24px;
-      color: white;
-      cursor: pointer;
-    }
-
-    #snapBtn:hover {
-      background: var(--primary-dark);
     }
 
     body.dark {
-      --bg-light: #121212;
-      --white: #1e1e1e;
-      --text-main: #f1f1f1;
-    }
+  --primary: #28a745;
+  --primary-dark: #3ad76f;
+  --bg-light: #121212;
+  --white: #1e1e1e;
+  --danger: #421116;
+  --danger-dark: #822d3a;
+  --text-main: #f1f1f1;
+}
 
-    body.dark #joinSection,
-    body.dark #chatSection {
-      background-color: var(--white);
-      color: var(--text-main);
-    }
+body.dark #joinSection,
+body.dark #chatSection {
+  background-color: var(--white);
+  color: var(--text-main);
+}
 
-    body.dark input,
-    body.dark button,
-    body.dark #messages {
-      background-color: #2a2a2a;
-      color: #f1f1f1;
-      border: 1px solid #444;
-    }
+body.dark input,
+body.dark button,
+body.dark #messages {
+  background-color: #2a2a2a;
+  color: #f1f1f1;
+  border: 1px solid #444;
+}
 
-    body.dark #messages {
-      background: #1a1a1a;
-    }
+body.dark #messages {
+  background: #1a1a1a;
+}
 
-    body.dark .message .username {
-      color: var(--primary);
-    }
+body.dark .message .username {
+  color: var(--primary);
+}
+
   </style>
 </head>
-<body>
-  <input type="checkbox" id="themeToggle" style="position: fixed; top: 10px; left: 10px; z-index: 1000;" />
+<body>  
+  <input type="checkbox" id="themeToggle" style="position: fixed; top: 10px; z-index: 1000; "></input>
+
 
   <div id="joinSection">
     <input id="nameInput" placeholder="Name" autocomplete="off" />
-    <input id="roomInput" placeholder="Room" autocomplete="off" />
+    <input id="roomInput" placeholder="Room" autocomplete="off"/>
     <div id="errorMsg"></div>
     <button id="joinBtn">Join</button>
   </div>
@@ -240,40 +213,35 @@
     </div>
     <div id="messages"></div>
     <div id="chatFooter">
-      <button id="selfieBtn">📸</button>
-      <input id="messageInput" placeholder="Type a message..." autocomplete="off" />
-      <button id="sendBtn">Send</button>
-    </div>
-    <div id="livePreview"></div>
+    <input id="messageInput" placeholder="Type a message..." autocomplete="off"/>
+    <button id="sendBtn">Send</button>
   </div>
-
-  <div id="webcamModal">
-    <div id="webcamBox">
-      <video id="webcamFeed" autoplay playsinline></video><br/>
-      <button id="snapBtn">📷</button>
-    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const themeToggle = document.getElementById("themeToggle");
-    themeToggle.addEventListener("change", () => {
-      document.body.classList.toggle("dark", themeToggle.checked);
-      localStorage.setItem("theme", themeToggle.checked ? "dark" : "light");
-    });
 
-    window.addEventListener("DOMContentLoaded", () => {
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme === "dark") {
-        document.body.classList.add("dark");
-        themeToggle.checked = true;
-      }
-    });
+themeToggle.addEventListener("change", () => {
+  document.body.classList.toggle("dark", themeToggle.checked);
+  localStorage.setItem("theme", themeToggle.checked ? "dark" : "light");
+});
+
+// Apply saved theme on load
+window.addEventListener("DOMContentLoaded", () => {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+    themeToggle.checked = true;
+  }
+});
+
 
     let socket;
     try {
       socket = io();
     } catch {
+      console.warn("Socket.IO not connected – UI mode only.");
       socket = { emit: () => {}, on: () => {} };
     }
 
@@ -288,66 +256,55 @@
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
     const errorMsg = document.getElementById("errorMsg");
-    const livePreview = document.getElementById("livePreview");
-    const selfieBtn = document.getElementById("selfieBtn");
 
-    const webcamModal = document.getElementById("webcamModal");
-    const webcamFeed = document.getElementById("webcamFeed");
-    const snapBtn = document.getElementById("snapBtn");
+    let currentRoomCode = "";
 
-    let webcamStream = null;
-    let selfieDataURL = "";
+    // Validate room name: letters, numbers, dash, underscore only
+    function validateRoomName(name) {
+      return /^[a-zA-Z0-9-_]+$/.test(name);
+    }
 
-    selfieBtn.onclick = async () => {
-      try {
-        webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        webcamFeed.srcObject = webcamStream;
-        webcamModal.style.display = "flex";
-      } catch (e) {
-        alert("Camera error: " + e.message);
-      }
-    };
+    // Detect if text contains a URL (simple regex)
+    function findURLs(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.match(urlRegex) || [];
+    }
 
-    snapBtn.onclick = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 160;
-      canvas.height = 120;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(webcamFeed, 0, 0, canvas.width, canvas.height);
-      selfieDataURL = canvas.toDataURL("image/jpeg", 0.1); // Compress
-
-      if (webcamStream) {
-        webcamStream.getTracks().forEach(track => track.stop());
-        webcamStream = null;
-      }
-
-      webcamModal.style.display = "none";
-      livePreview.innerHTML = `<img src="${selfieDataURL}" alt="Selfie Preview" />`;
-      messageInput.disabled = true;
-    };
+    // Check if URL is a GIF
+    function isGif(url) {
+      return url.toLowerCase().endsWith(".gif");
+    }
 
     joinBtn.onclick = () => {
       errorMsg.style.display = "none";
       const roomCode = roomInput.value.trim();
       const userName = nameInput.value.trim() || "Anonymous";
 
-      if (!roomCode.match(/^[a-zA-Z0-9-_]+$/)) {
-        errorMsg.textContent = "Invalid room name!";
+      if (!roomCode) {
+        errorMsg.textContent = "Room name is required.";
+        errorMsg.style.display = "block";
+        return;
+      }
+      if (!validateRoomName(roomCode)) {
+        errorMsg.textContent = "Invalid room name! Use letters, numbers, '-' and '_'.";
         errorMsg.style.display = "block";
         return;
       }
 
-      joinSection.style.display = "none";
       chatSection.style.display = "flex";
+      joinSection.style.display = "none";
+
       roomCodeDisplay.textContent = "Room: " + roomCode;
       socket.emit("joinRoom", { roomCode, userName });
+      currentRoomCode = roomCode;
     };
 
     leaveBtn.onclick = () => {
-      socket.emit("leaveRoom", {});
+      socket.emit("leaveRoom", { roomCode: currentRoomCode });
+      currentRoomCode = "";
+      messagesDiv.innerHTML = "";
       chatSection.style.display = "none";
       joinSection.style.display = "block";
-      messagesDiv.innerHTML = "";
       errorMsg.style.display = "none";
     };
 
@@ -358,64 +315,47 @@
 
     socket.on("message", renderMessage);
 
-    function findURLs(text) {
-      return (text.match(/https?:\/\/[^\s]+/g) || []);
-    }
-
-    function isGif(url) {
-      return url.toLowerCase().endsWith(".gif");
-    }
-
     function renderMessage(msg) {
       const div = document.createElement("div");
       div.classList.add("message");
 
-      const user = document.createElement("div");
-      user.classList.add("username");
-      user.textContent = msg.userName + ":";
+      const usernameSpan = document.createElement("div");
+      usernameSpan.classList.add("username");
+      usernameSpan.textContent = msg.userName + ":";
 
-      div.appendChild(user);
+      const textDiv = document.createElement("div");
+      textDiv.classList.add("text");
+      textDiv.textContent = msg.text;
 
-      if (msg.text.startsWith("data:image/jpeg")) {
-        const img = document.createElement("img");
-        img.src = msg.text;
-        div.appendChild(img);
-      } else {
-        const textDiv = document.createElement("div");
-        textDiv.classList.add("text");
-        textDiv.textContent = msg.text;
-        div.appendChild(textDiv);
+      div.appendChild(usernameSpan);
+      div.appendChild(textDiv);
 
-        const urls = findURLs(msg.text);
-        urls.forEach(url => {
-          if (isGif(url)) {
-            const gif = document.createElement("img");
-            gif.src = url;
-            gif.classList.add("gif");
-            div.appendChild(gif);
-          } else {
-            const iframe = document.createElement("iframe");
-            iframe.src = url;
-            iframe.setAttribute("sandbox", "allow-scripts allow-popups allow-forms allow-same-origin");
-            iframe.loading = "lazy";
-            div.appendChild(iframe);
-          }
-        });
-      }
+      // parse URLs and render iframes or gifs below the text
+      const urls = findURLs(msg.text);
+      urls.forEach(url => {
+        if (isGif(url)) {
+          const img = document.createElement("img");
+          img.src = url;
+          img.alt = "GIF";
+          img.classList.add("gif");
+          div.appendChild(img);
+        } else {
+          const iframe = document.createElement("iframe");
+          iframe.src = url;
+          iframe.setAttribute("loading", "lazy");
+          iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms");
+          div.appendChild(iframe);
+        }
+      });
 
       messagesDiv.appendChild(div);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
     sendBtn.onclick = () => {
-      if (selfieDataURL) {
-        socket.emit("message", { text: selfieDataURL });
-        selfieDataURL = "";
-        livePreview.innerHTML = "";
-        messageInput.disabled = false;
-      } else {
-        const text = messageInput.value.trim();
-        if (text) socket.emit("message", { text });
+      const text = messageInput.value;
+      if (text.trim()) {
+        socket.emit("message", { text });
         messageInput.value = "";
       }
     };
