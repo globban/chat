@@ -10,6 +10,8 @@
       --primary-dark: #218838;
       --bg-light: #f4f4f4;
       --white: #fff;
+      --danger: #dc3545;
+      --danger-dark: #c82333;
     }
 
     body {
@@ -43,11 +45,6 @@
       box-sizing: border-box;
     }
 
-    input[type="color"] {
-      padding: 4px;
-      height: 40px;
-    }
-
     button {
       background-color: var(--primary);
       color: var(--white);
@@ -78,11 +75,11 @@
     }
 
     #leaveBtn {
-      background-color: #dc3545;
+      background-color: var(--danger);
     }
 
     #leaveBtn:hover {
-      background-color: #c82333;
+      background-color: var(--danger-dark);
     }
 
     #messages {
@@ -93,8 +90,41 @@
       margin-bottom: 12px;
       border-radius: 6px;
       background: #fafafa;
+      font-size: 15px;
+      line-height: 1.4;
     }
 
+    .message {
+      margin-bottom: 12px;
+    }
+
+    .message .username {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--primary-dark);
+    }
+
+    .message .text {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .message iframe {
+      margin-top: 8px;
+      width: 100%;
+      height: 200px;
+      border: none;
+      border-radius: 6px;
+    }
+
+    .message img.gif {
+      margin-top: 8px;
+      max-width: 100%;
+      border-radius: 6px;
+      display: block;
+    }
+
+    /* Responsive */
     @media (max-width: 600px) {
       body {
         padding: 10px;
@@ -110,14 +140,22 @@
         height: 95vh;
       }
     }
+
+    /* Error message style */
+    #errorMsg {
+      color: var(--danger);
+      font-weight: bold;
+      margin-bottom: 12px;
+      display: none;
+    }
   </style>
 </head>
 <body>
 
   <div id="joinSection">
     <input id="nameInput" placeholder="Name" autocomplete="off" />
-    <input id="colorInput" type="color" />
-    <input id="roomInput" placeholder="Room" autocomplete="off"/>
+    <input id="roomInput" placeholder="Room (letters, numbers, -, _ only)" autocomplete="off"/>
+    <div id="errorMsg"></div>
     <button id="joinBtn">Join</button>
   </div>
 
@@ -142,7 +180,6 @@
     }
 
     const nameInput = document.getElementById("nameInput");
-    const colorInput = document.getElementById("colorInput");
     const roomInput = document.getElementById("roomInput");
     const joinBtn = document.getElementById("joinBtn");
     const leaveBtn = document.getElementById("leaveBtn");
@@ -152,21 +189,47 @@
     const messagesDiv = document.getElementById("messages");
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
+    const errorMsg = document.getElementById("errorMsg");
 
     let currentRoomCode = "";
 
+    // Validate room name: letters, numbers, dash, underscore only
+    function validateRoomName(name) {
+      return /^[a-zA-Z0-9-_]+$/.test(name);
+    }
+
+    // Detect if text contains a URL (simple regex)
+    function findURLs(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.match(urlRegex) || [];
+    }
+
+    // Check if URL is a GIF
+    function isGif(url) {
+      return url.toLowerCase().endsWith(".gif");
+    }
+
     joinBtn.onclick = () => {
+      errorMsg.style.display = "none";
       const roomCode = roomInput.value.trim();
       const userName = nameInput.value.trim() || "Anonymous";
-      const colorHex = colorInput.value;
 
-      if (!roomCode) return;
+      if (!roomCode) {
+        errorMsg.textContent = "Room name is required.";
+        errorMsg.style.display = "block";
+        return;
+      }
+      if (!validateRoomName(roomCode)) {
+        errorMsg.textContent = "Invalid room name! Use letters, numbers, '-' and '_'.";
+        errorMsg.style.display = "block";
+        return;
+      }
 
       chatSection.style.display = "flex";
       joinSection.style.display = "none";
 
       roomCodeDisplay.textContent = "Room: " + roomCode;
-      socket.emit("joinRoom", { roomCode, userName, color: colorHex });
+      socket.emit("joinRoom", { roomCode, userName });
       currentRoomCode = roomCode;
     };
 
@@ -176,6 +239,7 @@
       messagesDiv.innerHTML = "";
       chatSection.style.display = "none";
       joinSection.style.display = "block";
+      errorMsg.style.display = "none";
     };
 
     socket.on("loadMessages", msgs => {
@@ -187,9 +251,37 @@
 
     function renderMessage(msg) {
       const div = document.createElement("div");
-      div.textContent = `${msg.userName}: ${msg.text}`;
-      div.style.color = msg.color;
-      div.style.marginBottom = "8px";
+      div.classList.add("message");
+
+      const usernameSpan = document.createElement("div");
+      usernameSpan.classList.add("username");
+      usernameSpan.textContent = msg.userName + ":";
+
+      const textDiv = document.createElement("div");
+      textDiv.classList.add("text");
+      textDiv.textContent = msg.text;
+
+      div.appendChild(usernameSpan);
+      div.appendChild(textDiv);
+
+      // parse URLs and render iframes or gifs below the text
+      const urls = findURLs(msg.text);
+      urls.forEach(url => {
+        if (isGif(url)) {
+          const img = document.createElement("img");
+          img.src = url;
+          img.alt = "GIF";
+          img.classList.add("gif");
+          div.appendChild(img);
+        } else {
+          const iframe = document.createElement("iframe");
+          iframe.src = url;
+          iframe.setAttribute("loading", "lazy");
+          iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms");
+          div.appendChild(iframe);
+        }
+      });
+
       messagesDiv.appendChild(div);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
