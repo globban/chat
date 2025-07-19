@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>DB Chat</title>
   <style>
     :root {
@@ -90,7 +90,7 @@
       flex: 1;
       overflow-y: auto;
       border: 1px solid #ddd;
-      padding:  0px;
+      padding: 0px;
       margin-bottom: 12px;
       border-radius: 0px;
       background: #fafafa;
@@ -113,14 +113,6 @@
       word-wrap: break-word;
     }
 
-    .message iframe {
-      margin-top: 8px;
-      width: 100%;
-      height: 200px;
-      border: none;
-      border-radius: 6px;
-    }
-
     .message img.gif {
       margin-top: 8px;
       max-width: 100%;
@@ -129,14 +121,10 @@
     }
 
     #messageInput {
-      width: calc(100% - 100px); /* Adjust for padding */
-      flex-direction: row !important  ;
+      width: calc(100% - 220px);
+      flex-direction: row !important;
       display: flex;
     }
-
-
-
-    /* Responsive */
 
     /* Error message style */
     #errorMsg {
@@ -151,7 +139,6 @@
       position: relative;
       flex-direction: row !important;
       display: flex;
-
     }
 
     #chatFooter {
@@ -159,49 +146,171 @@
       align-items: center;
       justify-content: space-between;
       margin-top: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex-direction: row !important;
+
     }
 
+    /* iframe placeholder style */
+    .iframe-placeholder {
+      margin-top: 8px;
+      padding: 10px;
+      background: #eee;
+      border: 1px solid #ccc;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 6px;
+      user-select: none;
+      color: #333;
+      font-size: 14px;
+    }
+
+    /* live preview style */
+    #livePreview {
+      margin-bottom: 12px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    #livePreview img {
+      max-width: 100%;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* iframe popup modal */
+    #iframePopup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      flex-direction: column;
+    }
+
+    #iframePopup iframe {
+      width: 90vw;
+      height: 80vh;
+      border: none;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+
+    #iframePopupClose {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 36px;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+      font-weight: bold;
+      z-index: 1001;
+    }
+
+    /* Dark mode */
     body.dark {
-  --primary: #28a745;
-  --primary-dark: #3ad76f;
-  --bg-light: #121212;
-  --white: #1e1e1e;
-  --danger: #421116;
-  --danger-dark: #822d3a;
-  --text-main: #f1f1f1;
-}
+      --primary: #28a745;
+      --primary-dark: #3ad76f;
+      --bg-light: #121212;
+      --white: #1e1e1e;
+      --danger: #421116;
+      --danger-dark: #822d3a;
+      --text-main: #f1f1f1;
+    }
 
-body.dark #joinSection,
-body.dark #chatSection {
-  background-color: var(--white);
-  color: var(--text-main);
-}
+    body.dark #joinSection,
+    body.dark #chatSection {
+      background-color: var(--white);
+      color: var(--text-main);
+    }
 
-body.dark input,
-body.dark button,
-body.dark #messages {
-  background-color: #2a2a2a;
-  color: #f1f1f1;
-  border: 1px solid #444;
-}
+    body.dark input,
+    body.dark button,
+    body.dark #messages {
+      background-color: #2a2a2a;
+      color: #f1f1f1;
+      border: 1px solid #444;
+    }
 
-body.dark #messages {
-  background: #1a1a1a;
-}
+    body.dark #messages {
+      background: #1a1a1a;
+    }
 
-body.dark .message .username {
-  color: var(--primary);
-}
+    body.dark .message .username {
+      color: var(--primary);
+    }
+
+    #gifBtn {
+      width: 100px;
+    }
+    #gifBtn:hover {
+      background: #1a2a3a;
+      color: #fff;
+      border-color: #6cf;
+    }
+    #gifPicker {
+      position: absolute;
+      bottom: 60px;
+      left: 10px;
+      z-index: 100;
+      background: rgba(35,39,47,0.98);
+      border-radius: 12px;
+      box-shadow: 0 4px 24px #000a;
+      padding: 1em;
+      display: flex;
+      flex-direction: column;
+      width: 340px;
+      max-width: 96vw;
+      max-height: 350px;
+      overflow: auto;
+      border: 1.5px solid rgba(255,255,255,0.13);
+      backdrop-filter: blur(12px);
+    }
+    #gifPicker input[type="text"] {
+      width: 100%;
+      padding: 0.5em 0.7em;
+      border-radius: 6px;
+      border: 1px solid #222;
+      margin-bottom: 0.7em;
+      font-size: 1em;
+      background: #232323;
+      color: #eee;
+      outline: none;
+    }
+    #gifPicker .gif-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      justify-content: flex-start;
+    }
+    #gifPicker .gif-grid img {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 7px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border 0.15s;
+    }
+    #gifPicker .gif-grid img:hover {
+      border: 2px solid #6cf;
+    }
 
   </style>
 </head>
-<body>  
-  <input type="checkbox" id="themeToggle" style="position: fixed; top: 10px; z-index: 1000; "></input>
-
+<body>
+  <input type="checkbox" id="themeToggle" style="position: fixed; top: 10px; z-index: 1000;" />
 
   <div id="joinSection">
     <input id="nameInput" placeholder="Name" autocomplete="off" />
-    <input id="roomInput" placeholder="Room" autocomplete="off"/>
+    <input id="roomInput" placeholder="Room" autocomplete="off" />
     <div id="errorMsg"></div>
     <button id="joinBtn">Join</button>
   </div>
@@ -212,38 +321,35 @@ body.dark .message .username {
       <button id="leaveBtn">Leave</button>
     </div>
     <div id="messages"></div>
+    <div id="livePreview"></div>
     <div id="chatFooter">
-    <input id="messageInput" placeholder="Type a message..." autocomplete="off"/>
-    <button id="sendBtn">Send</button>
+      <button id="gifBtn" title="Add GIF" type="button">🎬 GIF</button>
+
+      <div id="gifPicker" style="display:none;">
+        <input type="text" id="gifSearch" placeholder="Search GIFs..." />
+        <div class="gif-grid" id="gifGrid"></div>
+      </div>
+
+      <input id="messageInput" placeholder="Type a message..." autocomplete="off" />
+      <button id="sendBtn">Send</button>
+    </div>
   </div>
+
+  <!-- Iframe popup modal -->
+  <div id="iframePopup">
+    <span id="iframePopupClose">&times;</span>
+    <iframe id="iframePopupFrame" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    // DOM references
+    const gifBtn = document.getElementById("gifBtn");
+    const gifPicker = document.getElementById("gifPicker");
+    const gifSearch = document.getElementById("gifSearch");
+    const gifGrid = document.getElementById("gifGrid");
+
     const themeToggle = document.getElementById("themeToggle");
-
-themeToggle.addEventListener("change", () => {
-  document.body.classList.toggle("dark", themeToggle.checked);
-  localStorage.setItem("theme", themeToggle.checked ? "dark" : "light");
-});
-
-// Apply saved theme on load
-window.addEventListener("DOMContentLoaded", () => {
-  const savedTheme = localStorage.getItem("theme");
-  if (savedTheme === "dark") {
-    document.body.classList.add("dark");
-    themeToggle.checked = true;
-  }
-});
-
-
-    let socket;
-    try {
-      socket = io();
-    } catch {
-      console.warn("Socket.IO not connected – UI mode only.");
-      socket = { emit: () => {}, on: () => {} };
-    }
 
     const nameInput = document.getElementById("nameInput");
     const roomInput = document.getElementById("roomInput");
@@ -256,25 +362,129 @@ window.addEventListener("DOMContentLoaded", () => {
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
     const errorMsg = document.getElementById("errorMsg");
+    const livePreview = document.getElementById("livePreview");
 
+    const iframePopup = document.getElementById("iframePopup");
+    const iframePopupFrame = document.getElementById("iframePopupFrame");
+    const iframePopupClose = document.getElementById("iframePopupClose");
+
+    // Socket.IO connection (fallback for UI-only mode)
+    let socket;
+    try {
+      socket = io();
+    } catch {
+      console.warn("Socket.IO not connected – UI mode only.");
+      socket = { emit: () => {}, on: () => {} };
+    }
+
+    let gifPickerVisible = false;
+    let gifSearchTimeout = null;
     let currentRoomCode = "";
 
-    // Validate room name: letters, numbers, dash, underscore only
+    // Theme toggle
+    themeToggle.addEventListener("change", () => {
+      document.body.classList.toggle("dark", themeToggle.checked);
+      localStorage.setItem("theme", themeToggle.checked ? "dark" : "light");
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark");
+        themeToggle.checked = true;
+      }
+    });
+
+    // GIF Picker toggle
+    gifBtn.onclick = () => {
+      gifPickerVisible = !gifPickerVisible;
+      gifPicker.style.display = gifPickerVisible ? "flex" : "none";
+      if (gifPickerVisible) {
+        gifSearch.value = "";
+        gifGrid.innerHTML = "";
+        fetchTrendingGifs();
+        gifSearch.focus();
+      }
+    };
+
+    gifSearch.oninput = () => {
+      if (gifSearchTimeout) clearTimeout(gifSearchTimeout);
+      gifSearchTimeout = setTimeout(() => {
+        const q = gifSearch.value.trim();
+        if (q) {
+          fetchGifs(q);
+        } else {
+          fetchTrendingGifs();
+        }
+      }, 350);
+    };
+
+    function fetchTrendingGifs() {
+      gifGrid.innerHTML = "<span style='color:#888;'>Loading...</span>";
+      fetch(`https://g.tenor.com/v1/trending?key=LIVDSRZULELA&limit=16`)
+        .then(r => r.json())
+        .then(data => showGifs(data.results))
+        .catch(() => {
+          gifGrid.innerHTML = "<span style='color:#c00;'>Failed to load GIFs</span>";
+        });
+    }
+
+    function fetchGifs(q) {
+      gifGrid.innerHTML = "<span style='color:#888;'>Searching...</span>";
+      fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(q)}&key=LIVDSRZULELA&limit=16`)
+        .then(r => r.json())
+        .then(data => showGifs(data.results))
+        .catch(() => {
+          gifGrid.innerHTML = "<span style='color:#c00;'>Failed to load GIFs</span>";
+        });
+    }
+
+    function showGifs(results) {
+      gifGrid.innerHTML = "";
+      if (!results || !results.length) {
+        gifGrid.innerHTML = "<span style='color:#888;'>No GIFs found</span>";
+        return;
+      }
+      results.forEach(gif => {
+        const url = gif.media[0].tinygif.url;
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = "GIF";
+        img.onclick = () => {
+          socket.emit("message", { text: url });
+          gifPicker.style.display = "none";
+          gifPickerVisible = false;
+          messageInput.focus();
+        };
+        gifGrid.appendChild(img);
+      });
+    }
+
+    // Hide GIF picker if clicking outside
+    document.addEventListener("mousedown", (e) => {
+      if (gifPickerVisible && !gifPicker.contains(e.target) && e.target !== gifBtn) {
+        gifPicker.style.display = "none";
+        gifPickerVisible = false;
+      }
+    });
+
+    // Room name validation
     function validateRoomName(name) {
       return /^[a-zA-Z0-9-_]+$/.test(name);
     }
 
-    // Detect if text contains a URL (simple regex)
+    // Find URLs in text
     function findURLs(text) {
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       return text.match(urlRegex) || [];
     }
 
-    // Check if URL is a GIF
+    // Check if URL is GIF
     function isGif(url) {
       return url.toLowerCase().endsWith(".gif");
     }
 
+    // Join button handler
     joinBtn.onclick = () => {
       errorMsg.style.display = "none";
       const roomCode = roomInput.value.trim();
@@ -299,6 +509,7 @@ window.addEventListener("DOMContentLoaded", () => {
       currentRoomCode = roomCode;
     };
 
+    // Leave button handler
     leaveBtn.onclick = () => {
       socket.emit("leaveRoom", { roomCode: currentRoomCode });
       currentRoomCode = "";
@@ -306,8 +517,10 @@ window.addEventListener("DOMContentLoaded", () => {
       chatSection.style.display = "none";
       joinSection.style.display = "block";
       errorMsg.style.display = "none";
+      livePreview.innerHTML = "";
     };
 
+    // Incoming messages handlers
     socket.on("loadMessages", msgs => {
       messagesDiv.innerHTML = "";
       msgs.forEach(renderMessage);
@@ -315,6 +528,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     socket.on("message", renderMessage);
 
+    // Render message in chat
     function renderMessage(msg) {
       const div = document.createElement("div");
       div.classList.add("message");
@@ -330,7 +544,6 @@ window.addEventListener("DOMContentLoaded", () => {
       div.appendChild(usernameSpan);
       div.appendChild(textDiv);
 
-      // parse URLs and render iframes or gifs below the text
       const urls = findURLs(msg.text);
       urls.forEach(url => {
         if (isGif(url)) {
@@ -340,11 +553,15 @@ window.addEventListener("DOMContentLoaded", () => {
           img.classList.add("gif");
           div.appendChild(img);
         } else {
-          const iframe = document.createElement("iframe");
-          iframe.src = url;
-          iframe.setAttribute("loading", "lazy");
-          iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms");
-          div.appendChild(iframe);
+          // iframe placeholder
+          const placeholder = document.createElement("div");
+          placeholder.className = "iframe-placeholder";
+          placeholder.textContent = "Click to preview: " + url;
+          placeholder.onclick = () => {
+            iframePopupFrame.src = url;
+            iframePopup.style.display = "flex";
+          };
+          div.appendChild(placeholder);
         }
       });
 
@@ -352,17 +569,71 @@ window.addEventListener("DOMContentLoaded", () => {
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
+    // Send message
     sendBtn.onclick = () => {
-      const text = messageInput.value;
-      if (text.trim()) {
+      const text = messageInput.value.trim();
+      if (text) {
         socket.emit("message", { text });
         messageInput.value = "";
+        livePreview.innerHTML = "";
       }
     };
 
     messageInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") sendBtn.click();
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendBtn.click();
+      }
     });
+
+    // Live preview of links and gifs
+    messageInput.addEventListener("input", () => {
+      const text = messageInput.value;
+      livePreview.innerHTML = "";
+      const urls = findURLs(text);
+
+      urls.forEach(url => {
+        if (isGif(url)) {
+          const img = document.createElement("img");
+          img.src = url;
+          img.alt = "GIF preview";
+          livePreview.appendChild(img);
+        } else {
+          const placeholder = document.createElement("div");
+          placeholder.className = "iframe-placeholder";
+          placeholder.textContent = "Click to preview: " + url;
+          placeholder.onclick = () => {
+            iframePopupFrame.src = url;
+            iframePopup.style.display = "flex";
+          };
+          livePreview.appendChild(placeholder);
+        }
+      });
+    });
+
+    // Close iframe popup
+    iframePopupClose.onclick = () => {
+      iframePopup.style.display = "none";
+      iframePopupFrame.src = "";
+    };
+
+    // Close popup on outside click
+    iframePopup.addEventListener("click", e => {
+      if (e.target === iframePopup) {
+        iframePopupClose.click();
+      }
+    });
+
+    function adjustHeight() {
+  const chatSection = document.getElementById("chatSection");
+  const vh = window.innerHeight;
+  chatSection.style.height = vh + "px";
+}
+
+window.addEventListener("resize", adjustHeight);
+window.addEventListener("orientationchange", adjustHeight);
+window.addEventListener("load", adjustHeight);
+
   </script>
 </body>
 </html>
