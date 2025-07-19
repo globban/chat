@@ -247,7 +247,6 @@
     <div id="livePreview"></div>
   </div>
 
-  <!-- Webcam Modal -->
   <div id="webcamModal">
     <div id="webcamBox">
       <video id="webcamFeed" autoplay playsinline></video><br/>
@@ -315,7 +314,7 @@
       canvas.height = 120;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(webcamFeed, 0, 0, canvas.width, canvas.height);
-      selfieDataURL = canvas.toDataURL("image/jpeg", 0.1);
+      selfieDataURL = canvas.toDataURL("image/jpeg", 0.1); // Compress
 
       if (webcamStream) {
         webcamStream.getTracks().forEach(track => track.stop());
@@ -324,7 +323,6 @@
 
       webcamModal.style.display = "none";
       livePreview.innerHTML = `<img src="${selfieDataURL}" alt="Selfie Preview" />`;
-      messageInput.value = "";
       messageInput.disabled = true;
     };
 
